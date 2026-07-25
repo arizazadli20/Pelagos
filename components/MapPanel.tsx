@@ -116,6 +116,11 @@ export default function MapPanel({ port, ports, detections, onPortChange, hideHe
         center: [port.lat, port.lng],
         zoom: 13,
         zoomControl: false, // We'll reposition it via CSS or keep default top-left
+        dragging: true,
+        touchZoom: true,
+        scrollWheelZoom: true,
+        doubleClickZoom: true,
+        boxZoom: true,
       });
       L.control.zoom({ position: 'topleft' }).addTo(map);
       
@@ -247,7 +252,7 @@ export default function MapPanel({ port, ports, detections, onPortChange, hideHe
       )}
 
       {/* Map container — fills remaining height */}
-      <div style={{ position: "absolute", inset: (hideHeader ? 0 : "44px 0 0 0"), zIndex: 0 }}>
+      <div style={{ position: "absolute", inset: (hideHeader ? 0 : "44px 0 0 0"), zIndex: 0, pointerEvents: "auto" }}>
         {!loaded && (
           <div style={{
             position: "absolute", inset: 0, zIndex: 10,
@@ -262,7 +267,7 @@ export default function MapPanel({ port, ports, detections, onPortChange, hideHe
             <span style={{ fontSize: "13px", color: "var(--text-secondary)" }}>Loading map…</span>
           </div>
         )}
-        <div ref={mapRef} style={{ width: "100%", height: "100%" }} />
+        <div ref={mapRef} style={{ width: "100%", height: "100%", pointerEvents: "auto" }} />
 
 
 
