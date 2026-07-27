@@ -31,46 +31,72 @@ function portName(id: string) {
 
 export default function ActivityFeed({ entries }: Props) {
   return (
-    <div style={{ padding: "8px" }}>
-        {entries.map((entry, i) => {
-          const sev = SEVERITY[entry.type] ?? SEVERITY.info;
-          return (
-            <div
-              key={i}
-              className="row-hover"
-              style={{
-                display: "flex",
-                alignItems: "flex-start",
-                gap: "12px",
-                padding: "12px 14px",
-                marginBottom: "4px",
-                borderLeft: `2px solid ${sev.color}`,
-                background: "rgba(255,255,255,0.02)"
-              }}
-            >
-              {/* Icon */}
-              <div style={{
-                color: sev.color,
-                flexShrink: 0,
-                marginTop: "2px",
-              }}>
-                {sev.icon}
-              </div>
+    /*
+      height: 100% + overflow-y: auto gives the list its own internal scrollbar
+      so items are never clipped by the panel or page boundary.
+      The bottom padding ensures the last item never touches the container edge.
+    */
+    <div style={{
+      height: "100%",
+      overflowY: "auto",
+      padding: "8px 8px 16px",
+    }}>
+      {entries.map((entry, i) => {
+        const sev = SEVERITY[entry.type] ?? SEVERITY.info;
+        return (
+          <div
+            key={i}
+            className="row-hover"
+            style={{
+              display: "flex",
+              alignItems: "flex-start",
+              gap: "12px",
+              padding: "10px 14px",
+              marginBottom: "4px",
+              borderLeft: `2px solid ${sev.color}`,
+              background: "rgba(255,255,255,0.02)",
+              /* Ensure the row itself doesn't clip its own content */
+              minHeight: "0",
+              overflow: "visible",
+            }}
+          >
+            {/* Icon */}
+            <div style={{
+              color: sev.color,
+              flexShrink: 0,
+              marginTop: "2px",
+            }}>
+              {sev.icon}
+            </div>
 
-              {/* Text */}
-              <div style={{ flex: 1 }}>
-                <div style={{ fontSize: "13px", color: "var(--text-primary)", lineHeight: 1.4, fontWeight: 500 }}>
-                  {entry.event}
-                </div>
-                <div style={{ fontSize: "11px", color: "var(--text-secondary)", marginTop: "4px", display: "flex", gap: "6px", alignItems: "center" }}>
-                  <span>{portName(entry.portId)}</span>
-                  <span style={{ color: "var(--text-tertiary)" }}>•</span>
-                  <span>{timeAgo(entry.timestamp)}</span>
-                </div>
+            {/* Text */}
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{
+                fontSize: "13px",
+                color: "var(--text-primary)",
+                lineHeight: 1.4,
+                fontWeight: 500,
+                /* Prevent long event strings from overflowing their column */
+                wordBreak: "break-word",
+              }}>
+                {entry.event}
+              </div>
+              <div style={{
+                fontSize: "11px",
+                color: "var(--text-secondary)",
+                marginTop: "4px",
+                display: "flex",
+                gap: "6px",
+                alignItems: "center",
+              }}>
+                <span>{portName(entry.portId)}</span>
+                <span style={{ color: "var(--text-tertiary)" }}>•</span>
+                <span>{timeAgo(entry.timestamp)}</span>
               </div>
             </div>
-          );
-        })}
+          </div>
+        );
+      })}
     </div>
   );
 }

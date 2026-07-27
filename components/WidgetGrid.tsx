@@ -1,21 +1,22 @@
 "use client";
 
 import { useState, useCallback, useEffect, useRef, ReactNode } from "react";
-import { ResponsiveGridLayout, LayoutItem, ResponsiveLayouts } from "react-grid-layout";
-import { RotateCcw, Activity, ShieldAlert, Navigation, RefreshCw, History, BarChart2 } from "lucide-react";
+import { ResponsiveGridLayout, LayoutItem, ResponsiveLayouts, verticalCompactor } from "react-grid-layout";
+import { RotateCcw, Activity, ShieldAlert, Navigation, RefreshCw, History, BarChart2, Edit2, Check, CloudSun } from "lucide-react";
 import WidgetCard from "./WidgetCard";
 
-const STORAGE_KEY  = "peykgoz-dashboard-layout-v1";
+const STORAGE_KEY  = "peykgoz-dashboard-layout-v2";
 const DRAG_HANDLE  = "widget-header";
 
 /** Default 12-column layout */
 const DEFAULT_LAYOUT: LayoutItem[] = [
   { i: "kpi",        x: 0,  y: 0,  w: 4,  h: 5,  minW: 3, maxW: 12, minH: 4 },
-  { i: "riskzone",   x: 4,  y: 0,  w: 4,  h: 4,  minW: 3, maxW: 12, minH: 4 },
-  { i: "vessels",    x: 8,  y: 0,  w: 4,  h: 4,  minW: 3, maxW: 12, minH: 4 },
-  { i: "activity",   x: 0,  y: 4,  w: 4,  h: 6,  minW: 3, maxW: 12, minH: 5 },
-  { i: "conversion", x: 4,  y: 4,  w: 8,  h: 6,  minW: 4, maxW: 12, minH: 5 },
-  { i: "history",    x: 0,  y: 10, w: 12, h: 6,  minW: 6, maxW: 12, minH: 5 },
+  { i: "riskzone",   x: 4,  y: 0,  w: 4,  h: 5,  minW: 3, maxW: 12, minH: 4 },
+  { i: "vessels",    x: 8,  y: 0,  w: 4,  h: 5,  minW: 3, maxW: 12, minH: 4 },
+  { i: "activity",   x: 0,  y: 5,  w: 4,  h: 6,  minW: 3, maxW: 12, minH: 5 },
+  { i: "conversion", x: 4,  y: 5,  w: 8,  h: 7,  minW: 4, maxW: 12, minH: 6 },
+  { i: "history",    x: 0,  y: 12, w: 12, h: 6,  minW: 6, maxW: 12, minH: 5 },
+  { i: "weather",    x: 0,  y: 18, w: 4,  h: 5,  minW: 3, maxW: 12, minH: 4 },
 ];
 
 const DEFAULT_LAYOUTS: ResponsiveLayouts = {
@@ -33,6 +34,7 @@ const WIDGET_TITLES: Record<string, string> = {
   activity:   "Activity Log",
   conversion: "Circular Recovery",
   history:    "Detection History",
+  weather:    "Sea & Weather",
 };
 
 const WIDGET_ICONS: Record<string, ReactNode> = {
@@ -42,6 +44,7 @@ const WIDGET_ICONS: Record<string, ReactNode> = {
   activity:   <Activity size={16} strokeWidth={2.5} />,
   conversion: <RefreshCw size={16} strokeWidth={2.5} />,
   history:    <History size={16} strokeWidth={2.5} />,
+  weather:    <CloudSun size={16} strokeWidth={2.5} />,
 };
 
 export type WidgetDef = {
@@ -58,6 +61,7 @@ export default function WidgetGrid({ widgets }: Props) {
   const [width, setWidth]     = useState(800);
   const [isMobile, setIsMobile] = useState(false);
   const [mounted, setMounted]   = useState(false);
+  const [editMode, setEditMode] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Hydrate from localStorage on client mount only
@@ -98,12 +102,21 @@ export default function WidgetGrid({ widgets }: Props) {
   if (!mounted) return null;
 
   return (
-    <div ref={containerRef} style={{ position: "relative" }}>
+    <div ref={containerRef} style={{ position: "relative" }} data-edit-mode={editMode ? "true" : "false"}>
       {/* Toolbar */}
-      <div style={{ display: "flex", justifyContent: "flex-end", padding: "12px 16px 0", zIndex: 20, position: "relative" }}>
-        <button className="reset-layout-btn" onClick={handleReset} title="Reset to default layout">
-          <RotateCcw size={14} />
-          Reset layout
+      <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: "8px", padding: "12px 16px 0", zIndex: 20, position: "relative" }}>
+        {editMode && (
+          <button className="reset-layout-btn" onClick={handleReset} title="Reset to default layout">
+            <RotateCcw size={14} />
+            Reset
+          </button>
+        )}
+        <button
+          className={`reset-layout-btn${editMode ? " edit-mode-active" : ""}`}
+          onClick={() => setEditMode(v => !v)}
+          title={editMode ? "Save layout" : "Edit layout"}
+        >
+          {editMode ? <><Check size={14} /> Done</> : <><Edit2 size={14} /> Edit Layout</>}
         </button>
       </div>
 
@@ -116,18 +129,22 @@ export default function WidgetGrid({ widgets }: Props) {
         rowHeight={72}
         margin={[16, 16]}
         containerPadding={[16, 8]}
-        dragConfig={{ handle: `.${DRAG_HANDLE}`, enabled: !isMobile }}
-        resizeConfig={{ handles: ["se"], enabled: !isMobile }}
+        /* Use the library's vertical compactor so widgets pack downward
+           and cannot overlap — equivalent to compactType="vertical" */
+        compactor={verticalCompactor}
+        dragConfig={{ handle: `.${DRAG_HANDLE}`, enabled: editMode && !isMobile }}
+        resizeConfig={{ handles: ["se"], enabled: editMode && !isMobile }}
       >
         {DEFAULT_LAYOUT.map(({ i }) => {
           const widget = widgetMap[i];
           if (!widget) return null;
           return (
             <div key={i}>
-              <WidgetCard 
-                title={WIDGET_TITLES[i] ?? i} 
+              <WidgetCard
+                title={WIDGET_TITLES[i] ?? i}
                 icon={WIDGET_ICONS[i]}
                 dragHandleClass={DRAG_HANDLE}
+                editMode={editMode}
               >
                 {widget.content}
               </WidgetCard>

@@ -34,41 +34,67 @@ export default function ConversionTracker({ entries }: Props) {
         ))}
       </div>
 
-      {/* Radial Gauge */}
-      <div style={{ flex: 1, position: "relative", minHeight: "120px" }}>
-        <ResponsiveContainer width="100%" height="100%">
-          <PieChart>
-            <Pie
-              data={data}
-              cx="50%"
-              cy="95%"
-              startAngle={180}
-              endAngle={0}
-              innerRadius="75%"
-              outerRadius="100%"
-              dataKey="value"
-              stroke="none"
-              cornerRadius={4}
-              paddingAngle={2}
-            >
-              {data.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={entry.color} />
-              ))}
-            </Pie>
-            <Tooltip 
-              contentStyle={{ background: "var(--bg-base)", border: "1px solid var(--glass-border)", borderRadius: "8px", color: "var(--text-primary)" }} 
-              itemStyle={{ color: "var(--text-secondary)" }} 
-              formatter={(val: any) => [`${val}%`, '']}
-            />
-          </PieChart>
-        </ResponsiveContainer>
-        
-        {/* Center Text */}
-        <div style={{ position: "absolute", bottom: "10%", left: "50%", transform: "translateX(-50%)", textAlign: "center" }}>
-          <div style={{ fontSize: "38px", fontWeight: 300, color: "var(--text-primary)", lineHeight: 1, letterSpacing: "-0.02em", textShadow: "0 0 16px rgba(177, 178, 181, 0.2)" }}>
+      {/* Radial Gauge — semicircle with text safely below the arc */}
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-end", minHeight: "160px", position: "relative" }}>
+        {/*
+          We render the semicircle gauge in the upper ~60% of this area,
+          then place the text below it so nothing overlaps the SVG stroke.
+          cy="80%" ensures the arc midpoint is near the bottom of the chart
+          container, so the full semicircle fits without clipping.
+        */}
+        <div style={{ width: "100%", flex: 1, minHeight: "120px" }}>
+          <ResponsiveContainer width="100%" height="100%">
+            <PieChart margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
+              <Pie
+                data={data}
+                cx="50%"
+                cy="85%"
+                startAngle={180}
+                endAngle={0}
+                innerRadius="60%"
+                outerRadius="80%"
+                dataKey="value"
+                stroke="none"
+                cornerRadius={4}
+                paddingAngle={2}
+              >
+                {data.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={entry.color} />
+                ))}
+              </Pie>
+              <Tooltip
+                contentStyle={{ background: "var(--bg-base)", border: "1px solid var(--glass-border)", borderRadius: "8px", color: "var(--text-primary)" }}
+                itemStyle={{ color: "var(--text-secondary)" }}
+                formatter={(val: any) => [`${val}%`, '']}
+              />
+            </PieChart>
+          </ResponsiveContainer>
+        </div>
+
+        {/* Percentage text — sits below the arc, never overlapping it */}
+        <div style={{
+          textAlign: "center",
+          paddingTop: "16px",
+          paddingBottom: "8px",
+          flexShrink: 0,
+        }}>
+          <div style={{
+            fontSize: "38px",
+            fontWeight: 300,
+            color: "var(--text-primary)",
+            lineHeight: 1,
+            letterSpacing: "-0.02em",
+            textShadow: "0 0 16px rgba(177, 178, 181, 0.2)",
+          }}>
             {pct}%
           </div>
-          <div style={{ fontSize: "10px", color: "var(--text-secondary)", textTransform: "uppercase", letterSpacing: "0.1em", marginTop: "6px" }}>
+          <div style={{
+            fontSize: "10px",
+            color: "var(--text-secondary)",
+            textTransform: "uppercase",
+            letterSpacing: "0.1em",
+            marginTop: "8px",
+          }}>
             Recovery Rate
           </div>
         </div>

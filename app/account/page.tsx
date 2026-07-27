@@ -14,8 +14,9 @@ import VesselsWidget      from "@/components/VesselsWidget";
 import ActivityFeed       from "@/components/ActivityFeed";
 import ConversionTracker  from "@/components/ConversionTracker";
 import HistoryTable       from "@/components/HistoryTable";
+import SeaWeatherWidget   from "@/components/SeaWeatherWidget";
 import WidgetCard         from "@/components/WidgetCard";
-import { BarChart2, ShieldAlert, Navigation, Activity, RefreshCw, LogOut } from "lucide-react";
+import { BarChart2, ShieldAlert, Navigation, Activity, RefreshCw, LogOut, CloudSun } from "lucide-react";
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -75,6 +76,7 @@ export default function DashboardPage() {
     { id: "activity",   content: <ActivityFeed entries={activity} /> },
     { id: "conversion", content: <ConversionTracker entries={mockData.conversionLog} /> },
     { id: "history",    content: <HistoryTable detections={detections} /> },
+    { id: "weather",    content: <SeaWeatherWidget port={selectedPort} /> },
   ];
 
   return (
@@ -165,6 +167,12 @@ export default function DashboardPage() {
                      <IncidentKpiWidget detections={detections} />
                   </WidgetCard>
                 </div>
+                {/* Sea & Weather — below KPI in left dock */}
+                <div style={{ height: "220px" }}>
+                  <WidgetCard title="Sea &amp; Weather" icon={<CloudSun size={16} strokeWidth={2.5} />} dragHandleClass="">
+                    <SeaWeatherWidget port={selectedPort} />
+                  </WidgetCard>
+                </div>
               </div>
 
               {/* Right Dock */}
@@ -184,7 +192,7 @@ export default function DashboardPage() {
             </div>
 
             {/* Bottom Dock */}
-            <div style={{ display: "flex", gap: "16px", padding: "16px", height: "320px", pointerEvents: "auto" }}>
+            <div style={{ display: "flex", gap: "16px", padding: "0 16px 16px", height: "380px", pointerEvents: "auto" }}>
               <div style={{ flex: 1 }}>
                 <WidgetCard title="Activity Log" icon={<Activity size={16} strokeWidth={2.5} />} dragHandleClass="">
                    <ActivityFeed entries={activity} />

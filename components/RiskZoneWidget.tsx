@@ -97,11 +97,40 @@ export default function RiskZoneWidget({ detections }: Props) {
           { label: "Medium Risk", count: medium, color: COLORS.Medium, desc: "conf 75–89%" },
           { label: "Low Risk",    count: low,    color: COLORS.Low,    desc: "conf < 75%" },
         ].map(row => (
-          <div key={row.label} style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+          <div key={row.label} style={{ display: "flex", alignItems: "center", gap: "8px", minWidth: 0 }}>
+            {/* Color dot */}
             <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: row.color, flexShrink: 0 }} />
-            <span style={{ fontSize: "12px", color: "var(--text-primary)", flex: 1 }}>{row.label}</span>
-            <span style={{ fontSize: "12px", color: "var(--text-secondary)" }}>{row.desc}</span>
-            <span style={{ fontSize: "13px", fontWeight: 600, color: row.color, fontVariantNumeric: "tabular-nums", minWidth: "20px", textAlign: "right" }}>{row.count}</span>
+            {/* Label — grows, truncates if narrow */}
+            <span style={{
+              fontSize: "12px",
+              color: "var(--text-primary)",
+              flex: 1,
+              minWidth: 0,
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+              paddingRight: "4px",
+            }}>{row.label}</span>
+            {/* Descriptor — fixed-width, never overlaps label */}
+            <span style={{
+              fontSize: "11px",
+              color: "var(--text-secondary)",
+              flexShrink: 0,
+              minWidth: "72px",
+              textAlign: "right",
+              whiteSpace: "nowrap",
+            }}>{row.desc}</span>
+            {/* Count — fixed-width right column */}
+            <span style={{
+              fontSize: "13px",
+              fontWeight: 600,
+              color: row.color,
+              fontVariantNumeric: "tabular-nums",
+              flexShrink: 0,
+              minWidth: "24px",
+              textAlign: "right",
+              paddingLeft: "6px",
+            }}>{row.count}</span>
           </div>
         ))}
       </div>

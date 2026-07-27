@@ -70,20 +70,35 @@ export default function VesselsWidget({ vessels, port }: Props) {
               }}
             >
               {/* Name + type with Icon Thumbnail */}
-              <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "10px", minWidth: 0 }}>
                 <div style={{
-                  width: "28px", height: "28px", 
-                  background: "var(--glass-bg)", 
-                  border: "1px solid var(--glass-border)", 
-                  borderRadius: "6px", 
+                  width: "28px", height: "28px",
+                  background: "var(--glass-bg)",
+                  border: "1px solid var(--glass-border)",
+                  borderRadius: "6px",
                   display: "flex", alignItems: "center", justifyContent: "center",
-                  color: "var(--accent-teal)"
+                  color: "var(--accent-teal)",
+                  flexShrink: 0,
                 }}>
                   {getVesselIcon(v.type)}
                 </div>
-                <div>
-                  <div style={{ fontSize: "12px", color: "var(--text-primary)", fontWeight: 500 }}>{v.name}</div>
-                  <div style={{ fontSize: "10px", color: "var(--text-secondary)", marginTop: "1px" }}>{v.type}</div>
+                <div style={{ minWidth: 0, flex: 1 }}>
+                  <div style={{
+                    fontSize: "12px",
+                    color: "var(--text-primary)",
+                    fontWeight: 500,
+                    lineHeight: 1.35,
+                    /* Truncate long names with ellipsis instead of wrapping */
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                  }}>{v.name}</div>
+                  <div style={{
+                    fontSize: "10px",
+                    color: "var(--text-secondary)",
+                    marginTop: "3px",
+                    lineHeight: 1.3,
+                  }}>{v.type}</div>
                 </div>
               </div>
 
