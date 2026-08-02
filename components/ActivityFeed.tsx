@@ -167,6 +167,7 @@ export default function ActivityFeed({ entries, onEventClick }: Props) {
           </div>
         );
       })}
+      </div>
     </div>
   );
 }
