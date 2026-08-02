@@ -39,14 +39,17 @@ export default function WidgetCard({ title, children, icon, dragHandleClass = "w
   return (
     <div className={`widget-card${editMode ? " widget-card--editing" : ""}`}>
       <div className={dragHandleClass} style={{ cursor: editMode ? "grab" : "default" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-          {icon && <div style={{ color: "var(--accent-teal)", display: "flex", opacity: 0.8 }}>{icon}</div>}
+        <div style={{ display: "flex", alignItems: "center", gap: "8px", minWidth: 0, flex: 1 }}>
+          {icon && <div style={{ color: "var(--accent-teal)", display: "flex", flexShrink: 0, opacity: 0.8 }}>{icon}</div>}
           <span style={{
             fontSize: "11px",
             fontWeight: 600,
             color: "var(--text-secondary)",
             textTransform: "uppercase",
             letterSpacing: "0.07em",
+            whiteSpace: "nowrap",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
           }}>
             {title}
           </span>

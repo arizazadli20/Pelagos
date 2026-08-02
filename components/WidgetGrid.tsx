@@ -5,7 +5,7 @@ import { ResponsiveGridLayout, LayoutItem, ResponsiveLayouts, verticalCompactor 
 import { RotateCcw, Activity, ShieldAlert, Navigation, RefreshCw, History, BarChart2, Edit2, Check, CloudSun, Package, TrendingUp } from "lucide-react";
 import WidgetCard from "./WidgetCard";
 
-const STORAGE_KEY  = "peykgoz-dashboard-layout-v2";
+const STORAGE_KEY  = "peykgoz-dashboard-layout-v3";
 const DRAG_HANDLE  = "widget-header";
 
 /** Default 12-column layout */
@@ -16,9 +16,9 @@ const DEFAULT_LAYOUT: LayoutItem[] = [
   { i: "activity",   x: 0,  y: 5,  w: 4,  h: 6,  minW: 3, maxW: 12, minH: 5 },
   { i: "conversion", x: 4,  y: 5,  w: 8,  h: 7,  minW: 4, maxW: 12, minH: 6 },
   { i: "history",    x: 0,  y: 12, w: 12, h: 6,  minW: 6, maxW: 12, minH: 5 },
-  { i: "weather",    x: 0,  y: 18, w: 4,  h: 5,  minW: 3, maxW: 12, minH: 4 },
-  { i: "resources",  x: 4,  y: 18, w: 4,  h: 5,  minW: 3, maxW: 12, minH: 4 },
-  { i: "trends",     x: 8,  y: 18, w: 4,  h: 5,  minW: 3, maxW: 12, minH: 4 },
+  { i: "weather",    x: 0,  y: 18, w: 4,  h: 5,  minW: 4, maxW: 12, minH: 5 },
+  { i: "resources",  x: 4,  y: 18, w: 4,  h: 5,  minW: 4, maxW: 12, minH: 5 },
+  { i: "trends",     x: 8,  y: 18, w: 4,  h: 5,  minW: 4, maxW: 12, minH: 5 },
 ];
 
 const DEFAULT_LAYOUTS: ResponsiveLayouts = {
