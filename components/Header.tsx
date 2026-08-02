@@ -53,9 +53,14 @@ function LiveClock() {
           day: "numeric",
           month: "short",
           year: "numeric",
-          timeZone: "UTC",
+          timeZone: "Asia/Baku",
         })
       );
+      const options: Intl.DateTimeFormatOptions = { timeZone: 'Asia/Baku', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false };
+      const timeParts = new Intl.DateTimeFormat('en-GB', options).formatToParts(d);
+      setHh(timeParts.find(p => p.type === 'hour')?.value || "00");
+      setMm(timeParts.find(p => p.type === 'minute')?.value || "00");
+      setSs(timeParts.find(p => p.type === 'second')?.value || "00");
     };
     tick();
     const id = setInterval(tick, 1000);
@@ -87,7 +92,7 @@ function LiveClock() {
       >
         {hh}:{mm}:<span style={{ color: "var(--text-secondary)" }}>{ss}</span>
         <span style={{ fontSize: "10px", color: "var(--text-secondary)", marginLeft: "4px", letterSpacing: "0.05em" }}>
-          UTC
+          AZT
         </span>
       </span>
       {/* Date — always one line below, fixed format */}
@@ -270,10 +275,10 @@ export default function Header({
         boxShadow: "0 1px 0 0 var(--glass-border), 0 4px 24px rgba(0,0,0,0.35)",
         position: "sticky",
         top: 0,
-        zIndex: 100,
-        overflow: "hidden",
+        zIndex: 50,
         flexShrink: 0,
       }}
+      className="relative z-50"
     >
       {/* ── LEFT SIDE ─────────────────────────────────── */}
       <div style={{ display: "flex", alignItems: "center", gap: "24px" }}>
@@ -306,7 +311,7 @@ export default function Header({
                 whiteSpace: "nowrap",
               }}
             >
-              PEYKGÖZ
+              Pelagos
             </span>
             <span
               style={{
@@ -450,8 +455,8 @@ export default function Header({
               display: "flex",
               flexDirection: "column",
               boxShadow: "0 8px 32px rgba(0,0,0,0.6)",
-              zIndex: 200,
-            }}>
+              zIndex: 100,
+            }} className="z-[100]">
               <button
                 onClick={() => { setShowExportMenu(false); onExportCsv?.(); }}
                 style={{
@@ -618,10 +623,11 @@ export default function Header({
                 flexDirection: "column",
                 gap: "8px",
                 boxShadow: "0 8px 32px rgba(0,0,0,0.6)",
-                zIndex: 200,
+                zIndex: 100,
                 maxHeight: "400px",
                 overflowY: "auto",
               }}
+              className="z-[100]"
             >
               <div style={{ padding: "4px 8px", fontSize: "12px", fontWeight: 600, color: "var(--text-primary)", borderBottom: "1px solid var(--glass-border)", paddingBottom: "8px", marginBottom: "4px" }}>
                 Alert Center

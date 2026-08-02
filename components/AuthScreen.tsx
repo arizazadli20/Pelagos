@@ -79,7 +79,7 @@ export default function AuthScreen({ onLogin }: Props) {
             <div style={{ width: 40, height: 40, borderRadius: "8px", background: "var(--accent-teal)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--bg-base-end)" }}>
               <Globe size={24} strokeWidth={2.5} />
             </div>
-            <h1 style={{ fontSize: "32px", fontWeight: 800, letterSpacing: "0.1em", margin: 0, color: "var(--text-primary)" }}>PEYKGÖZ</h1>
+            <h1 style={{ fontSize: "32px", fontWeight: 800, letterSpacing: "0.1em", margin: 0, color: "var(--text-primary)" }}>Pelagos</h1>
           </div>
           <h2 style={{ fontSize: "42px", fontWeight: 300, lineHeight: 1.2, color: "var(--text-primary)", marginBottom: "20px", maxWidth: "500px" }}>
             Orbital Intelligence for <br/> Maritime Recovery
@@ -144,8 +144,8 @@ export default function AuthScreen({ onLogin }: Props) {
             )}
 
             <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-              <label style={{ fontSize: "12px", color: "var(--text-secondary)", fontWeight: 500 }}>Authentication ID (Email)</label>
-              <input type="email" required className="auth-input" placeholder="id@agency.gov" defaultValue="admin@peykgoz.az" />
+              <label style={{ fontSize: "12px", color: "var(--text-secondary)", fontWeight: 500 }}>Gov ID</label>
+              <input type="email" required className="auth-input" placeholder="id@agency.gov" defaultValue="admin@pelagos.az" />
             </div>
 
             <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
@@ -182,8 +182,12 @@ export default function AuthScreen({ onLogin }: Props) {
 
           </form>
 
-          <div style={{ marginTop: "32px", textAlign: "center", fontSize: "11px", color: "var(--text-tertiary)" }}>
-            PEYKGÖZ Core v2.1.0 • Secure Connection
+          <div style={{
+            marginTop: "32px", textAlign: "center", fontSize: "10px", color: "var(--text-tertiary)",
+            display: "flex", alignItems: "center", justifyContent: "center", gap: "8px"
+          }}>
+            <Shield size={12} />
+            Pelagos Core v2.1.0 • Secure Connection
           </div>
         </div>
       </div>
