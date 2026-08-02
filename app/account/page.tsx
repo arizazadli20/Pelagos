@@ -38,6 +38,8 @@ export default function DashboardPage() {
   const [mapTheme, setMapTheme] = useState<'dark' | 'light' | 'satellite'>('dark');
   const [activeMapCoords, setActiveMapCoords] = useState<[number, number] | null>(null);
   const [isSatelliteView, setIsSatelliteView] = useState(false);
+  const [editMode, setEditMode] = useState(false);
+  const [resetSignal, setResetSignal] = useState(0);
 
   useEffect(() => {
     const savedLayout = localStorage.getItem('peykgoz-layout-mode');
@@ -96,6 +98,9 @@ export default function DashboardPage() {
         onLogout={handleLogout}
         isSatelliteView={isSatelliteView}
         onSatelliteToggle={() => setIsSatelliteView(!isSatelliteView)}
+        editMode={editMode}
+        onEditToggle={() => setEditMode(!editMode)}
+        onResetLayout={() => setResetSignal(r => r + 1)}
       />
 
       {layoutMode === 'grid' ? (
@@ -137,13 +142,9 @@ export default function DashboardPage() {
           {/* Right — Widget grid (67%) */}
           <div
             className="dashboard-grid-col"
-            style={{
-              flex: 1,
-              overflow: "auto",
-              minWidth: 0,
-            }}
+            style={{ width: "100%", height: "100%", overflowY: "auto", overflowX: "hidden", display: "flex", flexDirection: "column" }}
           >
-            <WidgetGrid widgets={widgets} />
+            <WidgetGrid widgets={widgets} editMode={editMode} resetSignal={resetSignal} />
           </div>
         </div>
       ) : (

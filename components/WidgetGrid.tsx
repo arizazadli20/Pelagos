@@ -54,14 +54,15 @@ export type WidgetDef = {
 
 type Props = {
   widgets: WidgetDef[];
+  editMode?: boolean;
+  resetSignal?: number;
 };
 
-export default function WidgetGrid({ widgets }: Props) {
+export default function WidgetGrid({ widgets, editMode = false, resetSignal = 0 }: Props) {
   const [layouts, setLayouts] = useState<ResponsiveLayouts>(DEFAULT_LAYOUTS);
   const [width, setWidth]     = useState(800);
   const [isMobile, setIsMobile] = useState(false);
   const [mounted, setMounted]   = useState(false);
-  const [editMode, setEditMode] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Hydrate from localStorage on client mount only
@@ -96,6 +97,12 @@ export default function WidgetGrid({ widgets }: Props) {
     try { localStorage.removeItem(STORAGE_KEY); } catch { /* ignore */ }
   }, []);
 
+  useEffect(() => {
+    if (resetSignal > 0) {
+      handleReset();
+    }
+  }, [resetSignal, handleReset]);
+
   const widgetMap = Object.fromEntries(widgets.map(w => [w.id, w]));
 
   // Skip SSR — avoid layout/width hydration mismatch
@@ -103,23 +110,6 @@ export default function WidgetGrid({ widgets }: Props) {
 
   return (
     <div ref={containerRef} style={{ position: "relative" }} data-edit-mode={editMode ? "true" : "false"}>
-      {/* Toolbar */}
-      <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: "8px", padding: "12px 16px 0", zIndex: 20, position: "relative" }}>
-        {editMode && (
-          <button className="reset-layout-btn" onClick={handleReset} title="Reset to default layout">
-            <RotateCcw size={14} />
-            Reset
-          </button>
-        )}
-        <button
-          className={`reset-layout-btn${editMode ? " edit-mode-active" : ""}`}
-          onClick={() => setEditMode(v => !v)}
-          title={editMode ? "Save layout" : "Edit layout"}
-        >
-          {editMode ? <><Check size={14} /> Done</> : <><Edit2 size={14} /> Edit Layout</>}
-        </button>
-      </div>
-
       <ResponsiveGridLayout
         layouts={layouts}
         onLayoutChange={handleLayoutChange}

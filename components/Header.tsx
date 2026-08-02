@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import {
-  Globe, ChevronDown, LayoutTemplate, Maximize, Settings, Check,
+  Globe, ChevronDown, LayoutTemplate, Maximize, Settings, Check, Edit2, RotateCcw,
   Satellite, Eye, EyeOff, LogOut,
 } from "lucide-react";
 import { Port } from "@/lib/mock-data";
@@ -21,6 +21,9 @@ type Props = {
   onLogout?: () => void;
   isSatelliteView?: boolean;
   onSatelliteToggle?: () => void;
+  editMode?: boolean;
+  onEditToggle?: () => void;
+  onResetLayout?: () => void;
 };
 
 // ─── Live Clock ───────────────────────────────────────────────────────────────
@@ -211,6 +214,9 @@ export default function Header({
   onLogout,
   isSatelliteView,
   onSatelliteToggle,
+  editMode,
+  onEditToggle,
+  onResetLayout,
 }: Props) {
   const [showThemeMenu, setShowThemeMenu] = useState(false);
   const themeMenuRef = useRef<HTMLDivElement>(null);
@@ -409,6 +415,57 @@ export default function Header({
         <LiveClock />
 
         <Divider />
+
+        {/* Layout Edit Buttons */}
+        {editMode && onResetLayout && (
+          <button
+            onClick={onResetLayout}
+            title="Reset to default layout"
+            style={{
+              background: "transparent",
+              border: "1px solid var(--glass-border)",
+              color: "var(--text-secondary)",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              gap: "6px",
+              padding: "4px 8px",
+              borderRadius: "6px",
+              fontSize: "11px",
+              fontWeight: 500,
+              transition: "background 0.2s"
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.background = "var(--glass-bg-hover)")}
+            onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+          >
+            <RotateCcw size={14} /> Reset
+          </button>
+        )}
+        
+        {onEditToggle && (
+          <button
+            onClick={onEditToggle}
+            title={editMode ? "Save layout" : "Edit layout"}
+            style={{
+              background: editMode ? "rgba(177, 178, 181, 0.15)" : "transparent",
+              border: `1px solid ${editMode ? "var(--glass-border-light)" : "var(--glass-border)"}`,
+              color: editMode ? "var(--text-primary)" : "var(--text-secondary)",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              gap: "6px",
+              padding: "4px 8px",
+              borderRadius: "6px",
+              fontSize: "11px",
+              fontWeight: 500,
+              transition: "all 0.2s"
+            }}
+            onMouseEnter={(e) => { if (!editMode) e.currentTarget.style.background = "var(--glass-bg-hover)"; }}
+            onMouseLeave={(e) => { if (!editMode) e.currentTarget.style.background = "transparent"; }}
+          >
+            {editMode ? <><Check size={14} /> Done</> : <><Edit2 size={14} /> Edit</>}
+          </button>
+        )}
 
         {/* Settings Icon */}
         <IconBtn title="Settings">
