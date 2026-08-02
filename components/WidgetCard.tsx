@@ -84,7 +84,6 @@ export default function WidgetCard({ title, children, icon, dragHandleClass = "w
             <circle cx="10" cy="11" r="1.3" fill="currentColor"/>
           </svg>
         </div>
-      </div>
 
       {/* Scrollable content area */}
       <div className="widget-body">
