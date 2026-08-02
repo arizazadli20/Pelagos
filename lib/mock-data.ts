@@ -78,6 +78,27 @@ export type AlertMessage = {
   acknowledged: boolean;
 };
 
+export type ResourceStatus = {
+  portId: string;
+  boomTotalMeters: number;
+  boomDeployedMeters: number;
+  sorbentTotalKg: number;
+  sorbentReservedKg: number;
+  teamsTotal: number;
+  teamsDeployed: number;
+  teams: { id: string; name: string; status: "Deployed" | "Available" | "Off-duty" }[];
+  vesselsEquipped: number;
+  vesselsNames: string[];
+};
+
+export type WeatherForecast = {
+  portId: string;
+  windSpeedKnots: number;
+  windHeading: number;
+  currentSpeedKnots: number;
+  currentHeading: number;
+};
+
 export const mockData = {
   ports: [
     { id: "baku",    name: "Baku Port",    lat: 40.37,  lng: 49.85  },
@@ -111,6 +132,37 @@ export const mockData = {
       acknowledged: true,
     }
   ] as AlertMessage[],
+
+  resources: [
+    {
+      portId: "baku",
+      boomTotalMeters: 5000,
+      boomDeployedMeters: 1200,
+      sorbentTotalKg: 2000,
+      sorbentReservedKg: 450,
+      teamsTotal: 5,
+      teamsDeployed: 2,
+      teams: [
+        { id: "t1", name: "Alpha Response", status: "Deployed" },
+        { id: "t2", name: "Bravo Team", status: "Deployed" },
+        { id: "t3", name: "Charlie Team", status: "Available" },
+        { id: "t4", name: "Delta Team", status: "Available" },
+        { id: "t5", name: "Echo Team", status: "Off-duty" }
+      ],
+      vesselsEquipped: 3,
+      vesselsNames: ["MT Caspian", "Tug SV-12", "Response V-1"]
+    }
+  ] as ResourceStatus[],
+
+  weather: [
+    {
+      portId: "baku",
+      windSpeedKnots: 12,
+      windHeading: 220, // blowing to SW
+      currentSpeedKnots: 1.5,
+      currentHeading: 240,
+    }
+  ] as WeatherForecast[],
 
   detections: [
     {

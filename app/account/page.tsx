@@ -15,8 +15,9 @@ import ActivityFeed       from "@/components/ActivityFeed";
 import ConversionTracker  from "@/components/ConversionTracker";
 import HistoryTable       from "@/components/HistoryTable";
 import SeaWeatherWidget   from "@/components/SeaWeatherWidget";
+import ResourceStatusWidget from "@/components/ResourceStatusWidget";
 import WidgetCard         from "@/components/WidgetCard";
-import { BarChart2, ShieldAlert, Navigation, Activity, RefreshCw, LogOut, CloudSun } from "lucide-react";
+import { BarChart2, ShieldAlert, Navigation, Activity, RefreshCw, LogOut, CloudSun, Package } from "lucide-react";
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -90,6 +91,7 @@ export default function DashboardPage() {
     { id: "conversion", content: <ConversionTracker entries={mockData.conversionLog} />, updatedAt: mockUpdatedAt },
     { id: "history",    content: <HistoryTable detections={detections} />, updatedAt: mockUpdatedAt },
     { id: "weather",    content: <SeaWeatherWidget port={selectedPort} />, updatedAt: mockUpdatedAt },
+    { id: "resources",  content: <ResourceStatusWidget resources={mockData.resources[0]} />, updatedAt: mockUpdatedAt },
   ];
 
   return (
@@ -192,6 +194,11 @@ export default function DashboardPage() {
                 <div style={{ height: "220px" }}>
                   <WidgetCard title="Sea & Weather" icon={<CloudSun size={16} strokeWidth={2.5} />} dragHandleClass="" updatedAt={mockUpdatedAt}>
                     <SeaWeatherWidget port={selectedPort} />
+                  </WidgetCard>
+                </div>
+                <div style={{ height: "220px" }}>
+                  <WidgetCard title="Resource Status" icon={<Package size={16} strokeWidth={2.5} />} dragHandleClass="" updatedAt={mockUpdatedAt}>
+                    <ResourceStatusWidget resources={mockData.resources[0]} />
                   </WidgetCard>
                 </div>
               </div>

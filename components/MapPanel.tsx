@@ -1,8 +1,45 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Detection, Port } from "@/lib/mock-data";
+import { Detection, Port, mockData } from "@/lib/mock-data";
 import { motion } from "framer-motion";
+import { Satellite } from "lucide-react";
+
+// Helper component for Satellite Countdown
+function SatelliteCountdown() {
+  const [timeLeft, setTimeLeft] = useState("");
+
+  useEffect(() => {
+    // Mock next pass: exactly 3 days, 14 hours, 22 mins from "now" on mount
+    const targetDate = new Date(Date.now() + (3 * 86400 + 14 * 3600 + 22 * 60) * 1000).getTime();
+
+    const update = () => {
+      const now = new Date().getTime();
+      const diff = targetDate - now;
+      if (diff <= 0) {
+        setTimeLeft("00:00:00");
+        return;
+      }
+      const d = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const s = Math.floor((diff % (1000 * 60)) / 1000);
+      setTimeLeft(`${d}d ${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`);
+    };
+    
+    update();
+    const interval = setInterval(update, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: "6px", background: "rgba(0,0,0,0.3)", padding: "4px 10px", borderRadius: "12px", border: "1px solid var(--glass-border)" }}>
+      <Satellite size={12} color="var(--color-med)" />
+      <span style={{ fontSize: "10px", color: "var(--text-secondary)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Next Pass:</span>
+      <span style={{ fontSize: "12px", fontWeight: 600, color: "var(--color-med)", fontVariantNumeric: "tabular-nums" }}>{timeLeft}</span>
+    </div>
+  );
+}
 
 type Props = {
   port: Port;
@@ -103,8 +140,11 @@ export default function MapPanel({ port, ports, detections, onPortChange, hideHe
   const polys   = useRef<any[]>([]);
   const tileLayerRef = useRef<any>(null);
   const wmsLayerRef = useRef<any>(null);
+  const driftPolys  = useRef<any[]>([]);
+  const vesselMarkers = useRef<any[]>([]);
   const [loaded, setLoaded] = useState(false);
   const [accessToken, setAccessToken] = useState<string | null>(null);
+  const [showDriftForecast, setShowDriftForecast] = useState(false);
 
   useEffect(() => {
     const fetchToken = async () => {
@@ -249,6 +289,110 @@ export default function MapPanel({ port, ports, detections, onPortChange, hideHe
     }
   }, [activeMapCoords, loaded]);
 
+  // Effect to update drift polygons and vessels
+  useEffect(() => {
+    if (!loaded || !mapInst.current) return;
+    import("leaflet").then(({ default: L }) => {
+      const map = mapInst.current;
+      driftPolys.current.forEach(p => map.removeLayer(p));
+      vesselMarkers.current.forEach(m => map.removeLayer(m));
+      driftPolys.current = [];
+      vesselMarkers.current = [];
+
+      const portWeather = mockData.weather.find(w => w.portId === port.id);
+      
+      // Draw Drift Polygons
+      if (showDriftForecast && portWeather) {
+        const speedMultiplier = portWeather.windSpeedKnots * 0.05 + portWeather.currentSpeedKnots * 1.5;
+        const driftAngle = portWeather.currentHeading * (Math.PI / 180);
+
+        detections.filter(d => d.portId === port.id).forEach(det => {
+          [6, 12, 24].forEach((hours, idx) => {
+            const distance = speedMultiplier * hours * 0.01; // approx lat/lng conversion
+            const dLat = distance * Math.cos(driftAngle);
+            const dLng = distance * Math.sin(driftAngle);
+            
+            const r = Math.sqrt(det.areaKm2) * 0.0044 * (1 + (hours / 12)); // area expands over time
+            const centerLat = det.lat + dLat;
+            const centerLng = det.lng + dLng;
+
+            const poly = [
+              [centerLat + r * 0.55, centerLng - r * 0.95],
+              [centerLat + r * 0.95, centerLng + r * 0.25],
+              [centerLat + r * 0.30, centerLng + r * 1.05],
+              [centerLat - r * 0.50, centerLng + r * 0.85],
+              [centerLat - r * 0.95, centerLng - r * 0.15],
+              [centerLat - r * 0.20, centerLng - r * 1.10],
+            ] as [number, number][];
+
+            const p = L.polygon(poly, {
+              color: '#f59e0b',
+              fillColor: '#f59e0b',
+              fillOpacity: 0.2 - (idx * 0.05),
+              weight: 2,
+              dashArray: '6, 6'
+            }).bindTooltip(`+${hours}h Forecast<br>Drift: ${(speedMultiplier * hours).toFixed(1)}km`);
+            
+            p.addTo(map);
+            driftPolys.current.push(p);
+          });
+        });
+      }
+
+      // Draw Vessels and Proximity Lines
+      const portVessels = mockData.vessels.filter(v => v.portId === port.id);
+      const portDetections = detections.filter(d => d.portId === port.id);
+
+      portVessels.forEach(v => {
+        let isNearSpill = false;
+        
+        portDetections.forEach(det => {
+          const dist = map.distance([v.lat, v.lng], [det.lat, det.lng]);
+          if (dist < 2500) { // Less than 2.5km away from spill center
+            isNearSpill = true;
+            const line = L.polyline([[v.lat, v.lng], [det.lat, det.lng]], {
+              color: 'var(--color-high)',
+              weight: 2,
+              dashArray: '4, 8',
+              opacity: 0.6
+            }).addTo(map);
+            vesselMarkers.current.push(line);
+          }
+        });
+
+        const iconHtml = `
+          <div style="
+            width:12px;height:12px;
+            background:${isNearSpill ? 'var(--color-high)' : 'var(--text-secondary)'};
+            border:2px solid #000;
+            border-radius:50%;
+            transform:rotate(${v.heading}deg);
+            ${isNearSpill ? 'box-shadow: 0 0 10px var(--color-high);' : ''}
+          ">
+            <div style="width:0;height:0;border-left:3px solid transparent;border-right:3px solid transparent;border-bottom:6px solid #000;position:absolute;top:-6px;left:1px;"></div>
+          </div>
+        `;
+        const vIcon = L.divIcon({ html: iconHtml, className: "", iconSize: [12, 12], iconAnchor: [6, 6] });
+        
+        const m = L.marker([v.lat, v.lng], { icon: vIcon })
+          .bindTooltip(`${v.name}<br>${v.status}`)
+          .addTo(map);
+        vesselMarkers.current.push(m);
+        
+        if (isNearSpill) {
+          const circle = L.circle([v.lat, v.lng], {
+            radius: 800,
+            color: 'var(--color-high)',
+            fillOpacity: 0.1,
+            weight: 1,
+            dashArray: '4, 4'
+          }).addTo(map);
+          vesselMarkers.current.push(circle);
+        }
+      });
+    });
+  }, [loaded, showDriftForecast, port, detections]);
+
   return (
     <div style={{ position: "relative", height: "100%", width: "100%", display: "flex", flexDirection: "column" }}>
 
@@ -274,6 +418,16 @@ export default function MapPanel({ port, ports, detections, onPortChange, hideHe
           </div>
 
           <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+
+            <div 
+              style={{ display: "flex", alignItems: "center", gap: "6px", cursor: "pointer", background: "rgba(0,0,0,0.3)", padding: "4px 10px", borderRadius: "12px", border: `1px solid ${showDriftForecast ? "var(--color-med)" : "var(--glass-border)"}` }}
+              onClick={() => setShowDriftForecast(!showDriftForecast)}
+            >
+              <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: showDriftForecast ? "var(--color-med)" : "var(--text-secondary)" }}></div>
+              <span style={{ fontSize: "10px", color: showDriftForecast ? "var(--color-med)" : "var(--text-secondary)", textTransform: "uppercase", letterSpacing: "0.05em", fontWeight: 600 }}>Drift Forecast</span>
+            </div>
+
+            <SatelliteCountdown />
 
             <div style={{ position: "relative" }}>
             <select

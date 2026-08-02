@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Vessel, Port } from "@/lib/mock-data";
-import { Ship, Anchor, Navigation, Radio, Search, Filter } from "lucide-react";
+import { Vessel, Port, mockData } from "@/lib/mock-data";
+import { Ship, Anchor, Navigation, Radio, Search, Filter, AlertTriangle } from "lucide-react";
 
 type Props = {
   vessels: Vessel[];
@@ -26,6 +26,17 @@ function getVesselIcon(type: string) {
   if (type.includes("Tanker")) return <Radio size={14} />;
   if (type.includes("Tug")) return <Anchor size={14} />;
   return <Navigation size={14} />;
+}
+
+function haversine(lat1: number, lon1: number, lat2: number, lon2: number) {
+  const R = 6371; // Earth radius in km
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+            Math.sin(dLon/2) * Math.sin(dLon/2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  return R * c;
 }
 
 export default function VesselsWidget({ vessels, port }: Props) {
@@ -104,6 +115,8 @@ export default function VesselsWidget({ vessels, port }: Props) {
       <div style={{ flex: 1, overflow: "auto" }}>
         {portVessels.map((v, i) => {
           const st = STATUS_STYLES[v.status];
+          const isNearSpill = mockData.detections.some(d => d.portId === port.id && haversine(v.lat, v.lng, d.lat, d.lng) <= 2.5);
+          
           return (
             <div
               key={v.id}
@@ -121,14 +134,15 @@ export default function VesselsWidget({ vessels, port }: Props) {
               <div style={{ display: "flex", alignItems: "center", gap: "10px", minWidth: 0 }}>
                 <div style={{
                   width: "28px", height: "28px",
-                  background: "var(--glass-bg)",
-                  border: "1px solid var(--glass-border)",
+                  background: isNearSpill ? "rgba(220, 38, 38, 0.15)" : "var(--glass-bg)",
+                  border: isNearSpill ? "1px solid var(--color-high)" : "1px solid var(--glass-border)",
                   borderRadius: "6px",
                   display: "flex", alignItems: "center", justifyContent: "center",
-                  color: "var(--accent-teal)",
+                  color: isNearSpill ? "var(--color-high)" : "var(--accent-teal)",
                   flexShrink: 0,
-                }}>
-                  {getVesselIcon(v.type)}
+                  boxShadow: isNearSpill ? "0 0 10px rgba(220, 38, 38, 0.4)" : "none",
+                }} title={isNearSpill ? "Proximity Warning" : ""}>
+                  {isNearSpill ? <AlertTriangle size={14} /> : getVesselIcon(v.type)}
                 </div>
                 <div style={{ minWidth: 0, flex: 1 }}>
                   <div style={{
