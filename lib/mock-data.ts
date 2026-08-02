@@ -67,12 +67,50 @@ export type Vessel = {
   type: string;
 };
 
+export type AlertSeverity = "critical" | "high" | "medium" | "low";
+
+export type AlertMessage = {
+  id: string;
+  severity: AlertSeverity;
+  message: string;
+  location: string;
+  timestamp: string;
+  acknowledged: boolean;
+};
+
 export const mockData = {
   ports: [
     { id: "baku",    name: "Baku Port",    lat: 40.37,  lng: 49.85  },
     { id: "sumgait", name: "Sumgait Port", lat: 40.59,  lng: 49.64  },
     { id: "alyat",   name: "Alyat Port",   lat: 39.96,  lng: 49.42  },
   ] as Port[],
+
+  alerts: [
+    {
+      id: "alert-1",
+      severity: "critical",
+      message: "Unidentified spill detected near main channel.",
+      location: "Baku Port",
+      timestamp: "2026-08-03T02:15:00Z",
+      acknowledged: false,
+    },
+    {
+      id: "alert-2",
+      severity: "high",
+      message: "Vessel 'MT Caspian' entered high risk zone.",
+      location: "Baku Port",
+      timestamp: "2026-08-03T01:45:00Z",
+      acknowledged: false,
+    },
+    {
+      id: "alert-3",
+      severity: "medium",
+      message: "Sorbent stock running low (25% remaining).",
+      location: "Alyat Port",
+      timestamp: "2026-08-02T10:30:00Z",
+      acknowledged: true,
+    }
+  ] as AlertMessage[],
 
   detections: [
     {

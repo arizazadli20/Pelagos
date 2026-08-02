@@ -3,9 +3,9 @@
 import { useState, useEffect, useRef } from "react";
 import {
   Globe, ChevronDown, LayoutTemplate, Maximize, Settings, Check, Edit2, RotateCcw,
-  Satellite, Eye, EyeOff, LogOut,
+  Satellite, Eye, EyeOff, LogOut, Bell,
 } from "lucide-react";
-import { Port } from "@/lib/mock-data";
+import { Port, AlertMessage } from "@/lib/mock-data";
 import StageTracker from "@/components/StageTracker";
 
 export type LayoutMode = "grid" | "immersive";
@@ -24,6 +24,8 @@ type Props = {
   editMode?: boolean;
   onEditToggle?: () => void;
   onResetLayout?: () => void;
+  alerts?: AlertMessage[];
+  onAcknowledgeAlert?: (id: string) => void;
 };
 
 // ─── Live Clock ───────────────────────────────────────────────────────────────
@@ -217,9 +219,13 @@ export default function Header({
   editMode,
   onEditToggle,
   onResetLayout,
+  alerts = [],
+  onAcknowledgeAlert,
 }: Props) {
   const [showThemeMenu, setShowThemeMenu] = useState(false);
+  const [showAlerts, setShowAlerts] = useState(false);
   const themeMenuRef = useRef<HTMLDivElement>(null);
+  const alertsMenuRef = useRef<HTMLDivElement>(null);
 
   // Close theme menu on outside click
   useEffect(() => {
@@ -227,10 +233,16 @@ export default function Header({
       if (themeMenuRef.current && !themeMenuRef.current.contains(e.target as Node)) {
         setShowThemeMenu(false);
       }
+      if (alertsMenuRef.current && !alertsMenuRef.current.contains(e.target as Node)) {
+        setShowAlerts(false);
+      }
     };
-    if (showThemeMenu) document.addEventListener("mousedown", handler);
+    if (showThemeMenu || showAlerts) document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
-  }, [showThemeMenu]);
+  }, [showThemeMenu, showAlerts]);
+
+  const unreadAlerts = alerts.filter(a => !a.acknowledged);
+  const unreadCount = unreadAlerts.length;
 
   return (
     <header
@@ -410,6 +422,15 @@ export default function Header({
             70% { box-shadow: 0 0 0 6px rgba(34, 197, 94, 0); }
             100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
           }
+          @keyframes bell-shake {
+            0%, 10% { transform: rotate(0deg); }
+            15% { transform: rotate(15deg); }
+            20% { transform: rotate(-15deg); }
+            25% { transform: rotate(10deg); }
+            30% { transform: rotate(-10deg); }
+            35% { transform: rotate(5deg); }
+            40%, 100% { transform: rotate(0deg); }
+          }
         `}} />
 
         <LiveClock />
@@ -466,6 +487,129 @@ export default function Header({
             {editMode ? <><Check size={14} /> Done</> : <><Edit2 size={14} /> Edit</>}
           </button>
         )}
+        <Divider />
+
+        {/* Alert Center */}
+        <div ref={alertsMenuRef} style={{ position: "relative", flexShrink: 0 }}>
+          <button
+            onClick={() => setShowAlerts(v => !v)}
+            title="Alert Center"
+            style={{
+              background: "transparent",
+              border: "none",
+              color: unreadCount > 0 ? "var(--text-primary)" : "var(--text-secondary)",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              flexShrink: 0,
+              padding: "6px",
+              borderRadius: "6px",
+              transition: "background 0.2s",
+              position: "relative"
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.background = "var(--glass-bg-hover)")}
+            onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+          >
+            <Bell size={16} style={{ animation: unreadCount > 0 ? "bell-shake 3s infinite" : "none" }} />
+            {unreadCount > 0 && (
+              <div style={{
+                position: "absolute",
+                top: "2px",
+                right: "2px",
+                width: "8px",
+                height: "8px",
+                backgroundColor: "var(--color-high)",
+                borderRadius: "50%",
+                boxShadow: "0 0 6px var(--color-high)",
+              }} />
+            )}
+          </button>
+
+          {showAlerts && (
+            <div
+              style={{
+                position: "absolute",
+                top: "40px",
+                right: 0,
+                width: "320px",
+                background: "rgba(26, 29, 41, 0.97)",
+                backdropFilter: "blur(16px)",
+                border: "1px solid var(--glass-border)",
+                borderRadius: "10px",
+                padding: "8px",
+                display: "flex",
+                flexDirection: "column",
+                gap: "8px",
+                boxShadow: "0 8px 32px rgba(0,0,0,0.6)",
+                zIndex: 200,
+                maxHeight: "400px",
+                overflowY: "auto",
+              }}
+            >
+              <div style={{ padding: "4px 8px", fontSize: "12px", fontWeight: 600, color: "var(--text-primary)", borderBottom: "1px solid var(--glass-border)", paddingBottom: "8px", marginBottom: "4px" }}>
+                Alert Center
+              </div>
+              {alerts.length === 0 ? (
+                <div style={{ padding: "12px", textAlign: "center", fontSize: "12px", color: "var(--text-secondary)" }}>
+                  No alerts.
+                </div>
+              ) : (
+                alerts.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()).map(alert => {
+                  const sevColor = alert.severity === "critical" ? "var(--color-high)" : alert.severity === "high" ? "var(--color-med)" : alert.severity === "medium" ? "var(--color-low)" : "var(--text-secondary)";
+                  return (
+                    <div key={alert.id} style={{
+                      padding: "8px",
+                      borderRadius: "6px",
+                      background: alert.acknowledged ? "transparent" : "var(--glass-bg)",
+                      border: "1px solid",
+                      borderColor: alert.acknowledged ? "transparent" : "var(--glass-border)",
+                      opacity: alert.acknowledged ? 0.6 : 1,
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: "6px"
+                    }}>
+                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                          <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: sevColor }} />
+                          <span style={{ fontSize: "10px", fontWeight: 600, textTransform: "uppercase", color: sevColor }}>{alert.severity}</span>
+                        </div>
+                        <span style={{ fontSize: "10px", color: "var(--text-secondary)" }}>
+                          {new Date(alert.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                      </div>
+                      <div style={{ fontSize: "12px", color: "var(--text-primary)", lineHeight: 1.4 }}>
+                        {alert.message}
+                      </div>
+                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: "4px" }}>
+                        <span style={{ fontSize: "10px", color: "var(--text-secondary)" }}>{alert.location}</span>
+                        {!alert.acknowledged && onAcknowledgeAlert && (
+                          <button
+                            onClick={() => onAcknowledgeAlert(alert.id)}
+                            style={{
+                              background: "transparent",
+                              border: "1px solid var(--glass-border-light)",
+                              borderRadius: "4px",
+                              color: "var(--text-primary)",
+                              fontSize: "10px",
+                              padding: "2px 6px",
+                              cursor: "pointer",
+                              transition: "background 0.2s"
+                            }}
+                            onMouseEnter={(e) => (e.currentTarget.style.background = "var(--glass-bg-hover)")}
+                            onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+                          >
+                            Acknowledge
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          )}
+        </div>
 
         {/* Settings Icon */}
         <IconBtn title="Settings">

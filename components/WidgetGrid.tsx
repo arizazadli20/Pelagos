@@ -50,6 +50,7 @@ const WIDGET_ICONS: Record<string, ReactNode> = {
 export type WidgetDef = {
   id: string;
   content: ReactNode;
+  updatedAt?: string;
 };
 
 type Props = {
@@ -135,6 +136,7 @@ export default function WidgetGrid({ widgets, editMode = false, resetSignal = 0 
                 icon={WIDGET_ICONS[i]}
                 dragHandleClass={DRAG_HANDLE}
                 editMode={editMode}
+                updatedAt={widget.updatedAt}
               >
                 {widget.content}
               </WidgetCard>

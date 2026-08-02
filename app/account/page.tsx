@@ -40,6 +40,7 @@ export default function DashboardPage() {
   const [isSatelliteView, setIsSatelliteView] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [resetSignal, setResetSignal] = useState(0);
+  const [alerts, setAlerts] = useState(mockData.alerts);
 
   useEffect(() => {
     const savedLayout = localStorage.getItem('peykgoz-layout-mode');
@@ -64,6 +65,10 @@ export default function DashboardPage() {
     router.push("/");
   };
 
+  const handleAcknowledgeAlert = (id: string) => {
+    setAlerts(prev => prev.map(a => a.id === id ? { ...a, acknowledged: true } : a));
+  };
+
   if (!mounted || !isAuthenticated) return null;
 
   const detections = [...mockData.detections].sort(
@@ -73,14 +78,18 @@ export default function DashboardPage() {
     (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
   );
 
+  // Mock last update times (e.g. 1-5 minutes ago)
+  const now = new Date();
+  const mockUpdatedAt = new Date(now.getTime() - 1000 * 60 * 2).toISOString();
+
   const widgets = [
-    { id: "kpi",        content: <IncidentKpiWidget detections={detections} /> },
-    { id: "riskzone",   content: <RiskZoneWidget detections={detections} /> },
-    { id: "vessels",    content: <VesselsWidget vessels={mockData.vessels} port={selectedPort} /> },
-    { id: "activity",   content: <ActivityFeed entries={activity} onEventClick={(lat, lng) => setActiveMapCoords([lat, lng])} /> },
-    { id: "conversion", content: <ConversionTracker entries={mockData.conversionLog} /> },
-    { id: "history",    content: <HistoryTable detections={detections} /> },
-    { id: "weather",    content: <SeaWeatherWidget port={selectedPort} /> },
+    { id: "kpi",        content: <IncidentKpiWidget detections={detections} />, updatedAt: mockUpdatedAt },
+    { id: "riskzone",   content: <RiskZoneWidget detections={detections} />, updatedAt: mockUpdatedAt },
+    { id: "vessels",    content: <VesselsWidget vessels={mockData.vessels} port={selectedPort} />, updatedAt: mockUpdatedAt },
+    { id: "activity",   content: <ActivityFeed entries={activity} onEventClick={(lat, lng) => setActiveMapCoords([lat, lng])} />, updatedAt: mockUpdatedAt },
+    { id: "conversion", content: <ConversionTracker entries={mockData.conversionLog} />, updatedAt: mockUpdatedAt },
+    { id: "history",    content: <HistoryTable detections={detections} />, updatedAt: mockUpdatedAt },
+    { id: "weather",    content: <SeaWeatherWidget port={selectedPort} />, updatedAt: mockUpdatedAt },
   ];
 
   return (
@@ -101,6 +110,8 @@ export default function DashboardPage() {
         editMode={editMode}
         onEditToggle={() => setEditMode(!editMode)}
         onResetLayout={() => setResetSignal(r => r + 1)}
+        alerts={alerts}
+        onAcknowledgeAlert={handleAcknowledgeAlert}
       />
 
       {layoutMode === 'grid' ? (
@@ -173,13 +184,13 @@ export default function DashboardPage() {
               {/* Left Dock */}
               <div style={{ width: "320px", display: "flex", flexDirection: "column", gap: "16px", pointerEvents: "auto" }}>
                 <div style={{ height: "340px" }}>
-                  <WidgetCard title="Incident KPIs" icon={<BarChart2 size={16} strokeWidth={2.5} />} dragHandleClass="">
+                  <WidgetCard title="Incident KPIs" icon={<BarChart2 size={16} strokeWidth={2.5} />} dragHandleClass="" updatedAt={mockUpdatedAt}>
                      <IncidentKpiWidget detections={detections} />
                   </WidgetCard>
                 </div>
                 {/* Sea & Weather — below KPI in left dock */}
                 <div style={{ height: "220px" }}>
-                  <WidgetCard title="Sea &amp; Weather" icon={<CloudSun size={16} strokeWidth={2.5} />} dragHandleClass="">
+                  <WidgetCard title="Sea & Weather" icon={<CloudSun size={16} strokeWidth={2.5} />} dragHandleClass="" updatedAt={mockUpdatedAt}>
                     <SeaWeatherWidget port={selectedPort} />
                   </WidgetCard>
                 </div>
@@ -188,12 +199,12 @@ export default function DashboardPage() {
               {/* Right Dock */}
               <div style={{ width: "360px", display: "flex", flexDirection: "column", gap: "16px", pointerEvents: "auto" }}>
                 <div style={{ height: "300px" }}>
-                  <WidgetCard title="Risk Zone Breakdown" icon={<ShieldAlert size={16} strokeWidth={2.5} />} dragHandleClass="">
+                  <WidgetCard title="Risk Zone Breakdown" icon={<ShieldAlert size={16} strokeWidth={2.5} />} dragHandleClass="" updatedAt={mockUpdatedAt}>
                      <RiskZoneWidget detections={detections} />
                   </WidgetCard>
                 </div>
                 <div style={{ flex: 1, minHeight: "250px" }}>
-                  <WidgetCard title="AIS Vessels" icon={<Navigation size={16} strokeWidth={2.5} />} dragHandleClass="">
+                  <WidgetCard title="AIS Vessels" icon={<Navigation size={16} strokeWidth={2.5} />} dragHandleClass="" updatedAt={mockUpdatedAt}>
                      <VesselsWidget vessels={mockData.vessels} port={selectedPort} />
                   </WidgetCard>
                 </div>
@@ -204,12 +215,12 @@ export default function DashboardPage() {
             {/* Bottom Dock */}
             <div style={{ display: "flex", gap: "16px", padding: "0 16px 16px", height: "380px", pointerEvents: "auto" }}>
               <div style={{ flex: 1 }}>
-                <WidgetCard title="Activity Log" icon={<Activity size={16} strokeWidth={2.5} />} dragHandleClass="">
+                <WidgetCard title="Activity Log" icon={<Activity size={16} strokeWidth={2.5} />} dragHandleClass="" updatedAt={mockUpdatedAt}>
                    <ActivityFeed entries={activity} onEventClick={(lat, lng) => setActiveMapCoords([lat, lng])} />
                 </WidgetCard>
               </div>
               <div style={{ flex: 2 }}>
-                <WidgetCard title="Circular Recovery" icon={<RefreshCw size={16} strokeWidth={2.5} />} dragHandleClass="">
+                <WidgetCard title="Circular Recovery" icon={<RefreshCw size={16} strokeWidth={2.5} />} dragHandleClass="" updatedAt={mockUpdatedAt}>
                    <ConversionTracker entries={mockData.conversionLog} />
                 </WidgetCard>
               </div>

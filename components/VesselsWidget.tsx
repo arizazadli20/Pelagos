@@ -1,7 +1,8 @@
 "use client";
 
+import { useState } from "react";
 import { Vessel, Port } from "@/lib/mock-data";
-import { Ship, Anchor, Navigation, Radio } from "lucide-react";
+import { Ship, Anchor, Navigation, Radio, Search, Filter } from "lucide-react";
 
 type Props = {
   vessels: Vessel[];
@@ -28,10 +29,57 @@ function getVesselIcon(type: string) {
 }
 
 export default function VesselsWidget({ vessels, port }: Props) {
-  const portVessels = vessels.filter(v => v.portId === port.id);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterStatus, setFilterStatus] = useState<string>("all");
+
+  const portVessels = vessels.filter(v => v.portId === port.id).filter(v => {
+    const matchesSearch = v.name.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = filterStatus === "all" || v.status === filterStatus;
+    return matchesSearch && matchesStatus;
+  });
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
+      {/* Search & Filter Bar */}
+      <div style={{
+        display: "flex", gap: "8px", padding: "0 16px 12px 16px", borderBottom: "1px solid var(--glass-border)"
+      }}>
+        <div style={{
+          position: "relative", flex: 1, display: "flex", alignItems: "center"
+        }}>
+          <Search size={14} style={{ position: "absolute", left: "8px", color: "var(--text-secondary)" }} />
+          <input
+            type="text"
+            placeholder="Search vessels..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            style={{
+              width: "100%", background: "var(--glass-bg)", border: "1px solid var(--glass-border)",
+              borderRadius: "6px", color: "var(--text-primary)", fontSize: "12px",
+              padding: "4px 8px 4px 28px", outline: "none"
+            }}
+          />
+        </div>
+        <div style={{ position: "relative", display: "flex", alignItems: "center" }}>
+          <Filter size={14} style={{ position: "absolute", left: "8px", color: "var(--text-secondary)", pointerEvents: "none" }} />
+          <select
+            value={filterStatus}
+            onChange={(e) => setFilterStatus(e.target.value)}
+            style={{
+              background: "var(--glass-bg)", border: "1px solid var(--glass-border)",
+              borderRadius: "6px", color: "var(--text-primary)", fontSize: "12px",
+              padding: "4px 24px 4px 28px", outline: "none", cursor: "pointer",
+              appearance: "none", WebkitAppearance: "none"
+            }}
+          >
+            <option value="all">All Status</option>
+            <option value="In port">In port</option>
+            <option value="Approaching">Approaching</option>
+            <option value="Transiting">Transiting</option>
+          </select>
+        </div>
+      </div>
+
       {/* Header row */}
       <div style={{
         display: "grid",
@@ -49,7 +97,7 @@ export default function VesselsWidget({ vessels, port }: Props) {
 
       {portVessels.length === 0 && (
         <div style={{ padding: "24px 14px", fontSize: "12px", color: "var(--text-tertiary)", textAlign: "center" }}>
-          No vessels tracked for {port.name}
+          No vessels found.
         </div>
       )}
 
