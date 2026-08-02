@@ -17,9 +17,9 @@
   --glass-border-light: rgba(125, 132, 145, 0.35);
 
   /* Semantic Status Colors (strictly for data visualization) */
-  --color-high: #ef4444; /* Red */
-  --color-med: #f59e0b;  /* Amber */
-  --color-low: #22c55e;  /* Green */
+  --color-high: #ff004c; /* Neon Red */
+  --color-med: #ffea00;  /* Neon Yellow */
+  --color-low: #00ff66;  /* Neon Green */
 
   /* Accent — used for icons, highlights */
   --accent-teal: #5eead4; /* Teal accent */

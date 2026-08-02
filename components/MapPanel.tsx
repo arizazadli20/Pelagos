@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Detection, Port } from "@/lib/mock-data";
+import { motion } from "framer-motion";
 
 type Props = {
   port: Port;
@@ -10,6 +11,8 @@ type Props = {
   onPortChange: (port: Port) => void;
   hideHeader?: boolean;
   mapTheme?: 'dark' | 'light' | 'satellite';
+  activeMapCoords?: [number, number] | null;
+  isSatelliteView?: boolean;
 };
 
 function spillPolygon(det: Detection): [number, number][] {
@@ -93,13 +96,32 @@ function makePopup(det: Detection) {
   `;
 }
 
-export default function MapPanel({ port, ports, detections, onPortChange, hideHeader = false, mapTheme = 'dark' }: Props) {
+export default function MapPanel({ port, ports, detections, onPortChange, hideHeader = false, mapTheme = 'dark', activeMapCoords, isSatelliteView = false }: Props) {
   const mapRef  = useRef<HTMLDivElement>(null);
   const mapInst = useRef<any>(null);
   const markers = useRef<any[]>([]);
   const polys   = useRef<any[]>([]);
   const tileLayerRef = useRef<any>(null);
+  const wmsLayerRef = useRef<any>(null);
   const [loaded, setLoaded] = useState(false);
+  const [accessToken, setAccessToken] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchToken = async () => {
+      try {
+        const res = await fetch('/api/copernicus-token');
+        if (!res.ok) {
+            const errorText = await res.text();
+            throw new Error(`API Failed! Status: ${res.status}, Details: ${errorText}`);
+        }
+        const data = await res.json();
+        setAccessToken(data.access_token);
+      } catch (err) {
+        console.error("Error fetching Sentinel token from API:", err);
+      }
+    };
+    fetchToken();
+  }, []);
 
   useEffect(() => {
     if (!mapRef.current || mapInst.current) return;
@@ -138,7 +160,7 @@ export default function MapPanel({ port, ports, detections, onPortChange, hideHe
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Handle Tile Theme
+  // Handle base tile theme (dark/light) — completely independent of WMS
   useEffect(() => {
     if (!mapInst.current || !loaded) return;
     const map = mapInst.current;
@@ -147,15 +169,45 @@ export default function MapPanel({ port, ports, detections, onPortChange, hideHe
       if (tileLayerRef.current) {
         map.removeLayer(tileLayerRef.current);
       }
-      const tileUrl = 
-        mapTheme === 'satellite' ? 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}' :
-        mapTheme === 'light' ? 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png' :
-        'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
-      
-      tileLayerRef.current = L.tileLayer(tileUrl, { maxZoom: 19 }).addTo(map);
+      const tileUrl =
+        mapTheme === 'light'
+          ? 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png'
+          : 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
+
+      tileLayerRef.current = L.tileLayer(tileUrl, { maxZoom: 19, zIndex: 1 }).addTo(map);
       tileLayerRef.current.bringToBack();
     });
   }, [mapTheme, loaded]);
+
+  // Handle Sentinel-1 WMS satellite overlay — only fires when token or toggle changes
+  useEffect(() => {
+    if (!mapInst.current || !loaded) return;
+    const map = mapInst.current;
+
+    import("leaflet").then(({ default: L }) => {
+      // Always clean up any existing WMS layer first
+      if (wmsLayerRef.current) {
+        map.removeLayer(wmsLayerRef.current);
+        wmsLayerRef.current = null;
+      }
+
+      // Only add the layer when both conditions are met — no race condition
+      if (isSatelliteView && accessToken) {
+        wmsLayerRef.current = L.tileLayer.wms(
+          `https://sh.dataspace.copernicus.eu/ogc/wms/0893532d-be92-488c-8857-e4af303e74fc?AUTHORIZATION=Bearer%20${accessToken}`,
+          {
+            layers: 'IW_VV',
+            format: 'image/png',
+            transparent: true,
+            time: '2026-07-01/2026-08-05',
+            attribution: '&copy; Copernicus Sentinel Data',
+            zIndex: 9999,
+            crossOrigin: 'anonymous',
+          } as any
+        ).addTo(map);
+      }
+    });
+  }, [isSatelliteView, accessToken, loaded]);
 
   // Handle markers
   useEffect(() => {
@@ -190,6 +242,13 @@ export default function MapPanel({ port, ports, detections, onPortChange, hideHe
     });
   }, [port, detections, loaded]);
 
+  // Handle cross-component flyTo
+  useEffect(() => {
+    if (activeMapCoords && mapInst.current && loaded) {
+      mapInst.current.flyTo(activeMapCoords, 14, { animate: true, duration: 1.5 });
+    }
+  }, [activeMapCoords, loaded]);
+
   return (
     <div style={{ position: "relative", height: "100%", width: "100%", display: "flex", flexDirection: "column" }}>
 
@@ -214,7 +273,9 @@ export default function MapPanel({ port, ports, detections, onPortChange, hideHe
             </span>
           </div>
 
-          <div style={{ position: "relative" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+
+            <div style={{ position: "relative" }}>
             <select
               id="map-port-selector"
               value={port.id}
@@ -247,6 +308,7 @@ export default function MapPanel({ port, ports, detections, onPortChange, hideHe
             >
               <path d="M2 3.5L5 6.5L8 3.5" stroke="var(--text-secondary)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
+            </div>
           </div>
         </div>
       )}
@@ -270,6 +332,36 @@ export default function MapPanel({ port, ports, detections, onPortChange, hideHe
         <div ref={mapRef} style={{ width: "100%", height: "100%", pointerEvents: "auto" }} />
 
 
+
+        {/* Map Legend Overlay */}
+        <div style={{
+          position: "absolute",
+          bottom: "60px",
+          left: "12px",
+          zIndex: 1000,
+          background: "var(--glass-bg)",
+          border: "1px solid var(--glass-border)",
+          borderRadius: "8px",
+          padding: "10px 14px",
+          display: "flex",
+          flexDirection: "column",
+          gap: "10px",
+          pointerEvents: "none",
+          backdropFilter: "blur(4px)",
+        }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+            <div style={{ width: "16px", height: "0", borderBottom: "2px dashed #ff004c" }} />
+            <span style={{ fontSize: "11px", color: "var(--text-secondary)", fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.05em" }}>Oil Spill</span>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+            <div style={{ width: "12px", height: "12px", borderRadius: "50%", border: "2px solid #fff", background: "var(--color-low)", marginLeft: "2px", marginRight: "2px" }} />
+            <span style={{ fontSize: "11px", color: "var(--text-secondary)", fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.05em" }}>Cleaned / Deployed</span>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+            <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: "#3b82f6", marginLeft: "4px", marginRight: "4px" }} />
+            <span style={{ fontSize: "11px", color: "var(--text-secondary)", fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.05em" }}>Vessel</span>
+          </div>
+        </div>
 
         {/* Coords overlay */}
         <div style={{

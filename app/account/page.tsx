@@ -36,6 +36,8 @@ export default function DashboardPage() {
   const [selectedPort, setSelectedPort] = useState<Port>(mockData.ports[0]);
   const [layoutMode, setLayoutMode] = useState<LayoutMode>('grid');
   const [mapTheme, setMapTheme] = useState<'dark' | 'light' | 'satellite'>('dark');
+  const [activeMapCoords, setActiveMapCoords] = useState<[number, number] | null>(null);
+  const [isSatelliteView, setIsSatelliteView] = useState(false);
 
   useEffect(() => {
     const savedLayout = localStorage.getItem('peykgoz-layout-mode');
@@ -73,7 +75,7 @@ export default function DashboardPage() {
     { id: "kpi",        content: <IncidentKpiWidget detections={detections} /> },
     { id: "riskzone",   content: <RiskZoneWidget detections={detections} /> },
     { id: "vessels",    content: <VesselsWidget vessels={mockData.vessels} port={selectedPort} /> },
-    { id: "activity",   content: <ActivityFeed entries={activity} /> },
+    { id: "activity",   content: <ActivityFeed entries={activity} onEventClick={(lat, lng) => setActiveMapCoords([lat, lng])} /> },
     { id: "conversion", content: <ConversionTracker entries={mockData.conversionLog} /> },
     { id: "history",    content: <HistoryTable detections={detections} /> },
     { id: "weather",    content: <SeaWeatherWidget port={selectedPort} /> },
@@ -91,6 +93,9 @@ export default function DashboardPage() {
         onLayoutModeChange={handleLayoutModeChange}
         mapTheme={mapTheme}
         onThemeChange={handleThemeChange}
+        onLogout={handleLogout}
+        isSatelliteView={isSatelliteView}
+        onSatelliteToggle={() => setIsSatelliteView(!isSatelliteView)}
       />
 
       {layoutMode === 'grid' ? (
@@ -124,6 +129,8 @@ export default function DashboardPage() {
               detections={detections}
               onPortChange={setSelectedPort}
               mapTheme={mapTheme}
+              activeMapCoords={activeMapCoords}
+              isSatelliteView={isSatelliteView}
             />
           </div>
 
@@ -152,6 +159,8 @@ export default function DashboardPage() {
               onPortChange={setSelectedPort}
               hideHeader={true}
               mapTheme={mapTheme}
+              activeMapCoords={activeMapCoords}
+              isSatelliteView={isSatelliteView}
             />
           </div>
 
@@ -195,7 +204,7 @@ export default function DashboardPage() {
             <div style={{ display: "flex", gap: "16px", padding: "0 16px 16px", height: "380px", pointerEvents: "auto" }}>
               <div style={{ flex: 1 }}>
                 <WidgetCard title="Activity Log" icon={<Activity size={16} strokeWidth={2.5} />} dragHandleClass="">
-                   <ActivityFeed entries={activity} />
+                   <ActivityFeed entries={activity} onEventClick={(lat, lng) => setActiveMapCoords([lat, lng])} />
                 </WidgetCard>
               </div>
               <div style={{ flex: 2 }}>
@@ -208,38 +217,6 @@ export default function DashboardPage() {
           </div>
         </div>
       )}
-
-      {/* Floating Account Button */}
-      <button
-        onClick={handleLogout}
-        style={{
-          position: "absolute",
-          bottom: "16px",
-          right: "16px",
-          zIndex: 100,
-          background: "var(--card-surface)",
-          border: "1px solid var(--border-muted)",
-          borderRadius: "8px",
-          padding: "8px 12px",
-          color: "var(--text-primary)",
-          display: "flex",
-          alignItems: "center",
-          gap: "8px",
-          cursor: "pointer",
-          boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
-          fontFamily: "inherit",
-          fontSize: "13px",
-          fontWeight: 500,
-          transition: "all 0.2s"
-        }}
-        onMouseOver={e => e.currentTarget.style.background = "var(--glass-bg-hover)"}
-        onMouseOut={e => e.currentTarget.style.background = "var(--card-surface)"}
-        title="Account Settings / Logout"
-      >
-        <LogOut size={16} />
-        Account
-      </button>
-
     </div>
   );
 }

@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useRef } from "react";
 import {
-  Globe, ChevronDown, LayoutTemplate, Maximize, Layers, Check,
-  Satellite, Eye, EyeOff,
+  Globe, ChevronDown, LayoutTemplate, Maximize, Settings, Check,
+  Satellite, Eye, EyeOff, LogOut,
 } from "lucide-react";
 import { Port } from "@/lib/mock-data";
 import StageTracker from "@/components/StageTracker";
@@ -18,6 +18,9 @@ type Props = {
   onLayoutModeChange?: (mode: LayoutMode) => void;
   mapTheme?: "dark" | "light" | "satellite";
   onThemeChange?: (theme: "dark" | "light" | "satellite") => void;
+  onLogout?: () => void;
+  isSatelliteView?: boolean;
+  onSatelliteToggle?: () => void;
 };
 
 // ─── Live Clock ───────────────────────────────────────────────────────────────
@@ -205,6 +208,9 @@ export default function Header({
   onLayoutModeChange,
   mapTheme,
   onThemeChange,
+  onLogout,
+  isSatelliteView,
+  onSatelliteToggle,
 }: Props) {
   const [showThemeMenu, setShowThemeMenu] = useState(false);
   const themeMenuRef = useRef<HTMLDivElement>(null);
@@ -220,250 +226,124 @@ export default function Header({
     return () => document.removeEventListener("mousedown", handler);
   }, [showThemeMenu]);
 
-  const themeLabels: Record<string, string> = {
-    dark: "Dark Map",
-    light: "Light Map",
-    satellite: "Satellite",
-  };
-
   return (
     <header
       style={{
-        /* Fixed height — never grows with content */
         height: "64px",
         minHeight: "64px",
         maxHeight: "64px",
         display: "flex",
         alignItems: "center",
+        justifyContent: "space-between",
         padding: "0 20px",
-        gap: "0",
-        /* Glass layer floating over the map */
         background: "rgba(26, 29, 41, 0.88)",
         backdropFilter: "blur(20px)",
         WebkitBackdropFilter: "blur(20px)",
         borderBottom: "1px solid var(--glass-border)",
         boxShadow: "0 1px 0 0 var(--glass-border), 0 4px 24px rgba(0,0,0,0.35)",
-        /* Sticky top bar */
         position: "sticky",
         top: 0,
         zIndex: 100,
-        /* Contain everything — no child should spill above */
         overflow: "hidden",
         flexShrink: 0,
       }}
     >
-      {/* ── ZONE 1: Logo + Breadcrumb ─────────────────────────────────── */}
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: "10px",
-          flexShrink: 0,
-          /* Reserve fixed width so Zone 2 stays centered regardless of content */
-          width: "220px",
-        }}
-      >
-        {/* Logo mark */}
-        <div
-          style={{
-            width: "34px",
-            height: "34px",
-            background: "var(--text-primary)",
-            borderRadius: "9px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            color: "var(--bg-base)",
-            flexShrink: 0,
-            boxShadow: "0 2px 8px rgba(0,0,0,0.3)",
-          }}
-        >
-          <Globe size={18} strokeWidth={2.5} />
-        </div>
-
-        <div style={{ display: "flex", flexDirection: "column", justifyContent: "center", lineHeight: 1 }}>
-          <span
-            style={{
-              fontWeight: 700,
-              fontSize: "14px",
-              color: "var(--text-primary)",
-              letterSpacing: "0.1em",
-              whiteSpace: "nowrap",
-            }}
-          >
-            PEYKGÖZ
-          </span>
-          <span
-            style={{
-              fontSize: "10px",
-              color: "var(--text-secondary)",
-              letterSpacing: "0.04em",
-              marginTop: "2px",
-              whiteSpace: "nowrap",
-            }}
-          >
-            Global Ops
-          </span>
-        </div>
-
-        {/* Separator after logo block */}
-        <Divider />
-      </div>
-
-      {/* ── ZONE 2: Workflow Stepper (centered) ──────────────────────── */}
-      <div
-        style={{
-          flex: 1,
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          overflow: "hidden",
-          minWidth: 0,
-        }}
-      >
-        <StageTracker />
-      </div>
-
-      {/* ── ZONE 3: Controls + Clock + Port ──────────────────────────── */}
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: "10px",
-          flexShrink: 0,
-          /* Mirror the Zone 1 width so stepper stays truly centered */
-          width: "220px",
-          justifyContent: "flex-end",
-        }}
-      >
-        <Divider />
-
-        {/* Layout toggle — grid vs immersive */}
-        {onLayoutModeChange && (
+      {/* ── LEFT SIDE ─────────────────────────────────── */}
+      <div style={{ display: "flex", alignItems: "center", gap: "24px" }}>
+        {/* Logo block */}
+        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
           <div
             style={{
+              width: "34px",
+              height: "34px",
+              background: "var(--text-primary)",
+              borderRadius: "9px",
               display: "flex",
-              background: "var(--glass-bg)",
-              border: "1px solid var(--glass-border)",
-              borderRadius: "8px",
-              padding: "2px",
-              gap: "2px",
+              alignItems: "center",
+              justifyContent: "center",
+              color: "var(--bg-base)",
               flexShrink: 0,
+              boxShadow: "0 2px 8px rgba(0,0,0,0.3)",
             }}
           >
-            <button
-              onClick={() => onLayoutModeChange("grid")}
-              title="Grid Layout"
+            <Globe size={18} strokeWidth={2.5} />
+          </div>
+
+          <div style={{ display: "flex", flexDirection: "column", justifyContent: "center", lineHeight: 1 }}>
+            <span
               style={{
-                background: layoutMode === "grid" ? "rgba(177,178,181,0.15)" : "transparent",
-                color: layoutMode === "grid" ? "var(--text-primary)" : "var(--text-secondary)",
-                border: "none",
-                borderRadius: "5px",
-                padding: "5px 7px",
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                transition: "all 0.18s",
+                fontWeight: 700,
+                fontSize: "14px",
+                color: "var(--text-primary)",
+                letterSpacing: "0.1em",
+                whiteSpace: "nowrap",
               }}
             >
-              <LayoutTemplate size={14} />
-            </button>
-            <button
-              onClick={() => onLayoutModeChange("immersive")}
-              title="Immersive Layout"
+              PEYKGÖZ
+            </span>
+            <span
               style={{
-                background: layoutMode === "immersive" ? "rgba(177,178,181,0.15)" : "transparent",
-                color: layoutMode === "immersive" ? "var(--text-primary)" : "var(--text-secondary)",
-                border: "none",
-                borderRadius: "5px",
-                padding: "5px 7px",
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                transition: "all 0.18s",
+                fontSize: "10px",
+                color: "var(--text-secondary)",
+                letterSpacing: "0.04em",
+                marginTop: "2px",
+                whiteSpace: "nowrap",
               }}
             >
-              <Maximize size={14} />
-            </button>
+              Global Ops
+            </span>
           </div>
-        )}
-
-        {/* Layers / Map theme button */}
-        {onThemeChange && mapTheme && (
-          <div ref={themeMenuRef} style={{ position: "relative", flexShrink: 0 }}>
-            <IconBtn
-              title={`Map: ${themeLabels[mapTheme]}`}
-              active={showThemeMenu}
-              onClick={() => setShowThemeMenu((v) => !v)}
-            >
-              <Layers size={15} />
-            </IconBtn>
-
-            {showThemeMenu && (
-              <div
-                style={{
-                  position: "absolute",
-                  top: "40px",
-                  right: 0,
-                  width: "152px",
-                  background: "rgba(26, 29, 41, 0.97)",
-                  backdropFilter: "blur(16px)",
-                  border: "1px solid var(--glass-border)",
-                  borderRadius: "10px",
-                  padding: "4px",
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: "2px",
-                  boxShadow: "0 8px 24px rgba(0,0,0,0.5)",
-                  zIndex: 200,
-                }}
-              >
-                {(["dark", "light", "satellite"] as const).map((id) => (
-                  <button
-                    key={id}
-                    onClick={() => {
-                      onThemeChange(id);
-                      setShowThemeMenu(false);
-                    }}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      padding: "8px 12px",
-                      background: mapTheme === id ? "var(--glass-bg)" : "transparent",
-                      border: "none",
-                      borderRadius: "6px",
-                      color: mapTheme === id ? "var(--text-primary)" : "var(--text-secondary)",
-                      fontSize: "12px",
-                      fontWeight: mapTheme === id ? 600 : 400,
-                      cursor: "pointer",
-                      fontFamily: "inherit",
-                      textAlign: "left",
-                      transition: "background 0.15s",
-                    }}
-                    onMouseEnter={(e) => {
-                      if (mapTheme !== id) e.currentTarget.style.background = "var(--glass-bg)";
-                    }}
-                    onMouseLeave={(e) => {
-                      if (mapTheme !== id) e.currentTarget.style.background = "transparent";
-                    }}
-                  >
-                    {themeLabels[id]}
-                    {mapTheme === id && <Check size={13} color="var(--color-low)" />}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* LIVE badge */}
-        <LiveBadge />
-
-        {/* Clock */}
-        <LiveClock />
+        </div>
 
         <Divider />
+
+        {/* Base Map / Live Satellite Toggle */}
+        {onSatelliteToggle && (
+          <div 
+            onClick={onSatelliteToggle}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              background: "var(--bg-base)",
+              border: "1px solid var(--glass-border)",
+              borderRadius: "20px",
+              padding: "2px",
+              cursor: "pointer",
+              position: "relative",
+              width: "200px",
+              height: "28px"
+            }}
+          >
+            <div style={{
+              flex: 1, textAlign: "center", zIndex: 1, fontSize: "11px", 
+              color: !isSatelliteView ? "#000" : "var(--text-secondary)",
+              fontWeight: !isSatelliteView ? 600 : 400,
+              transition: "color 0.2s",
+              userSelect: "none"
+            }}>
+              Base Map
+            </div>
+            <div style={{
+              flex: 1, textAlign: "center", zIndex: 1, fontSize: "11px", 
+              color: isSatelliteView ? "#000" : "var(--text-secondary)",
+              fontWeight: isSatelliteView ? 600 : 400,
+              transition: "color 0.2s",
+              userSelect: "none"
+            }}>
+              Live Satellite
+            </div>
+            <div style={{
+              position: "absolute",
+              top: "2px", left: "2px", bottom: "2px",
+              width: "calc(50% - 2px)",
+              background: "var(--text-primary)",
+              borderRadius: "16px",
+              boxShadow: "0 2px 8px rgba(0,0,0,0.2)",
+              transform: isSatelliteView ? "translateX(100%)" : "translateX(0)",
+              transition: "transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275)"
+            }}/>
+          </div>
+        )}
 
         {/* Port selector */}
         <div style={{ position: "relative", flexShrink: 0 }}>
@@ -481,36 +361,84 @@ export default function Header({
               color: "var(--text-primary)",
               fontSize: "12px",
               fontWeight: 500,
-              padding: "6px 28px 6px 10px",
+              padding: "6px 32px 6px 12px",
               cursor: "pointer",
-              outline: "none",
               appearance: "none",
-              WebkitAppearance: "none",
+              outline: "none",
               fontFamily: "inherit",
-              transition: "border-color 0.2s, background 0.2s",
-              whiteSpace: "nowrap",
+              transition: "all 0.2s",
             }}
-            onMouseEnter={(e) => (e.currentTarget.style.background = "var(--glass-bg-hover)")}
-            onMouseLeave={(e) => (e.currentTarget.style.background = "var(--glass-bg)")}
+            onMouseEnter={(e) => (e.currentTarget.style.borderColor = "var(--glass-border-light)")}
+            onMouseLeave={(e) => (e.currentTarget.style.borderColor = "var(--glass-border)")}
           >
             {ports.map((p) => (
-              <option key={p.id} value={p.id} style={{ background: "var(--bg-base)" }}>
+              <option key={p.id} value={p.id} style={{ background: "var(--card-surface)", color: "var(--text-primary)" }}>
                 {p.name}
               </option>
             ))}
           </select>
           <ChevronDown
-            size={13}
+            size={14}
             color="var(--text-secondary)"
-            style={{
-              position: "absolute",
-              right: "8px",
-              top: "50%",
-              transform: "translateY(-50%)",
-              pointerEvents: "none",
-            }}
+            style={{ position: "absolute", right: "12px", top: "50%", transform: "translateY(-50%)", pointerEvents: "none" }}
           />
         </div>
+      </div>
+
+      {/* ── RIGHT SIDE ─────────────────────────────────── */}
+      <div style={{ display: "flex", alignItems: "center", gap: "16px", paddingRight: "24px" }}>
+        
+        <LiveBadge />
+
+        {/* AI Status Indicator */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <div style={{
+            width: '6px', height: '6px', borderRadius: '50%', backgroundColor: 'var(--color-low)',
+            animation: 'pulse 2s infinite'
+          }} />
+          <span style={{ fontSize: '10px', color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>AI Status: Active Scanning...</span>
+        </div>
+        <style dangerouslySetInnerHTML={{__html: `
+          @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); }
+            70% { box-shadow: 0 0 0 6px rgba(34, 197, 94, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+          }
+        `}} />
+
+        <LiveClock />
+
+        <Divider />
+
+        {/* Settings Icon */}
+        <IconBtn title="Settings">
+          <Settings size={15} />
+        </IconBtn>
+
+        {/* Account Button */}
+        {onLogout && (
+          <button
+            onClick={onLogout}
+            title="Account Settings / Logout"
+            style={{
+              background: "transparent",
+              border: "none",
+              color: "var(--text-primary)",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              flexShrink: 0,
+              padding: "6px",
+              borderRadius: "6px",
+              transition: "background 0.2s"
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.background = "var(--glass-bg-hover)")}
+            onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+          >
+            <LogOut size={16} />
+          </button>
+        )}
       </div>
     </header>
   );

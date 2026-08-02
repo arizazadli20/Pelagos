@@ -13,8 +13,8 @@ export default function ConversionTracker({ entries }: Props) {
   const pct = Math.round((totals.conv / totals.col) * 100);
 
   const data = [
-    { name: "Converted", value: pct, color: "var(--text-primary)" },
-    { name: "Pending", value: 100 - pct, color: "var(--glass-border-light)" }
+    { name: "Converted", value: pct, color: "var(--accent-teal)" },
+    { name: "Pending", value: 100 - pct, color: "rgba(255, 255, 255, 0.05)" }
   ];
 
   return (
@@ -81,10 +81,10 @@ export default function ConversionTracker({ entries }: Props) {
           <div style={{
             fontSize: "38px",
             fontWeight: 300,
-            color: "var(--text-primary)",
+            color: "var(--accent-teal)",
             lineHeight: 1,
             letterSpacing: "-0.02em",
-            textShadow: "0 0 16px rgba(177, 178, 181, 0.2)",
+            textShadow: "0 0 16px rgba(94, 234, 212, 0.2)",
           }}>
             {pct}%
           </div>

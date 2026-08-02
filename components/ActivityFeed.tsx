@@ -3,7 +3,10 @@
 import { ActivityEntry } from "@/lib/mock-data";
 import { AlertTriangle, MapPin, Truck, CheckCircle2, ShieldCheck, Info } from "lucide-react";
 
-type Props = { entries: ActivityEntry[] };
+type Props = { 
+  entries: ActivityEntry[];
+  onEventClick?: (lat: number, lng: number) => void;
+};
 
 const SEVERITY: Record<ActivityEntry["type"], { color: string, icon: any }> = {
   alert:      { color: "var(--color-med)", icon: <AlertTriangle size={14} /> },
@@ -25,11 +28,18 @@ function timeAgo(ts: string) {
   return "just now";
 }
 
+// Temporary manual mapping for demonstration since ActivityEntry lacks lat/lng.
+const PORT_COORDS: Record<string, [number, number]> = {
+  "baku": [40.365, 49.855], // Baku Port approximate spill area
+  "sumgait": [40.590, 49.638],
+  "alyat": [39.958, 49.420],
+};
+
 function portName(id: string) {
   return id === "baku" ? "Baku Port" : id === "sumgait" ? "Sumgait Port" : "Alyat Port";
 }
 
-export default function ActivityFeed({ entries }: Props) {
+export default function ActivityFeed({ entries, onEventClick }: Props) {
   return (
     /*
       height: 100% + overflow-y: auto gives the list its own internal scrollbar
@@ -47,6 +57,12 @@ export default function ActivityFeed({ entries }: Props) {
           <div
             key={i}
             className="row-hover"
+            onClick={() => {
+              if (onEventClick) {
+                const coords = PORT_COORDS[entry.portId] || PORT_COORDS["baku"];
+                onEventClick(coords[0], coords[1]);
+              }
+            }}
             style={{
               display: "flex",
               alignItems: "flex-start",
@@ -55,9 +71,9 @@ export default function ActivityFeed({ entries }: Props) {
               marginBottom: "4px",
               borderLeft: `2px solid ${sev.color}`,
               background: "rgba(255,255,255,0.02)",
-              /* Ensure the row itself doesn't clip its own content */
               minHeight: "0",
               overflow: "visible",
+              cursor: onEventClick ? "pointer" : "default"
             }}
           >
             {/* Icon */}
