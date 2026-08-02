@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useEffect, useRef, ReactNode } from "react";
 import { ResponsiveGridLayout, LayoutItem, ResponsiveLayouts, verticalCompactor } from "react-grid-layout";
-import { RotateCcw, Activity, ShieldAlert, Navigation, RefreshCw, History, BarChart2, Edit2, Check, CloudSun, Package } from "lucide-react";
+import { RotateCcw, Activity, ShieldAlert, Navigation, RefreshCw, History, BarChart2, Edit2, Check, CloudSun, Package, TrendingUp } from "lucide-react";
 import WidgetCard from "./WidgetCard";
 
 const STORAGE_KEY  = "peykgoz-dashboard-layout-v2";
@@ -18,6 +18,7 @@ const DEFAULT_LAYOUT: LayoutItem[] = [
   { i: "history",    x: 0,  y: 12, w: 12, h: 6,  minW: 6, maxW: 12, minH: 5 },
   { i: "weather",    x: 0,  y: 18, w: 4,  h: 5,  minW: 3, maxW: 12, minH: 4 },
   { i: "resources",  x: 4,  y: 18, w: 4,  h: 5,  minW: 3, maxW: 12, minH: 4 },
+  { i: "trends",     x: 8,  y: 18, w: 4,  h: 5,  minW: 3, maxW: 12, minH: 4 },
 ];
 
 const DEFAULT_LAYOUTS: ResponsiveLayouts = {
@@ -37,6 +38,7 @@ const WIDGET_TITLES: Record<string, string> = {
   history:    "Detection History",
   weather:    "Sea & Weather",
   resources:  "Resource Status",
+  trends:     "Analytics & Trends",
 };
 
 const WIDGET_ICONS: Record<string, ReactNode> = {
@@ -48,6 +50,7 @@ const WIDGET_ICONS: Record<string, ReactNode> = {
   history:    <History size={16} strokeWidth={2.5} />,
   weather:    <CloudSun size={16} strokeWidth={2.5} />,
   resources:  <Package size={16} strokeWidth={2.5} />,
+  trends:     <TrendingUp size={16} strokeWidth={2.5} />,
 };
 
 export type WidgetDef = {

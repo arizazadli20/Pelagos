@@ -16,8 +16,9 @@ import ConversionTracker  from "@/components/ConversionTracker";
 import HistoryTable       from "@/components/HistoryTable";
 import SeaWeatherWidget   from "@/components/SeaWeatherWidget";
 import ResourceStatusWidget from "@/components/ResourceStatusWidget";
+import TrendsWidget       from "@/components/TrendsWidget";
 import WidgetCard         from "@/components/WidgetCard";
-import { BarChart2, ShieldAlert, Navigation, Activity, RefreshCw, LogOut, CloudSun, Package } from "lucide-react";
+import { BarChart2, ShieldAlert, Navigation, Activity, RefreshCw, LogOut, CloudSun, Package, TrendingUp } from "lucide-react";
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -92,6 +93,7 @@ export default function DashboardPage() {
     { id: "history",    content: <HistoryTable detections={detections} />, updatedAt: mockUpdatedAt },
     { id: "weather",    content: <SeaWeatherWidget port={selectedPort} />, updatedAt: mockUpdatedAt },
     { id: "resources",  content: <ResourceStatusWidget resources={mockData.resources[0]} />, updatedAt: mockUpdatedAt },
+    { id: "trends",     content: <TrendsWidget data={mockData.trends} />, updatedAt: mockUpdatedAt },
   ];
 
   return (
@@ -226,9 +228,14 @@ export default function DashboardPage() {
                    <ActivityFeed entries={activity} onEventClick={(lat, lng) => setActiveMapCoords([lat, lng])} />
                 </WidgetCard>
               </div>
-              <div style={{ flex: 2 }}>
+              <div style={{ flex: 1 }}>
                 <WidgetCard title="Circular Recovery" icon={<RefreshCw size={16} strokeWidth={2.5} />} dragHandleClass="" updatedAt={mockUpdatedAt}>
                    <ConversionTracker entries={mockData.conversionLog} />
+                </WidgetCard>
+              </div>
+              <div style={{ flex: 1 }}>
+                <WidgetCard title="Analytics & Trends" icon={<TrendingUp size={16} strokeWidth={2.5} />} dragHandleClass="" updatedAt={mockUpdatedAt}>
+                   <TrendsWidget data={mockData.trends} />
                 </WidgetCard>
               </div>
             </div>

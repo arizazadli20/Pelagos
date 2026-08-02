@@ -99,6 +99,12 @@ export type WeatherForecast = {
   currentHeading: number;
 };
 
+export type TrendData = {
+  date: string;
+  cumulativeArea: number;
+  incidentCount: number;
+};
+
 export const mockData = {
   ports: [
     { id: "baku",    name: "Baku Port",    lat: 40.37,  lng: 49.85  },
@@ -163,6 +169,17 @@ export const mockData = {
       currentHeading: 240,
     }
   ] as WeatherForecast[],
+
+  trends: [
+    { date: "Jul 27", cumulativeArea: 0.1, incidentCount: 1 },
+    { date: "Jul 28", cumulativeArea: 0.15, incidentCount: 2 },
+    { date: "Jul 29", cumulativeArea: 0.32, incidentCount: 4 },
+    { date: "Jul 30", cumulativeArea: 0.58, incidentCount: 5 },
+    { date: "Jul 31", cumulativeArea: 0.85, incidentCount: 7 },
+    { date: "Aug 01", cumulativeArea: 1.12, incidentCount: 9 },
+    { date: "Aug 02", cumulativeArea: 1.25, incidentCount: 11 },
+    { date: "Aug 03", cumulativeArea: 1.42, incidentCount: 12 },
+  ] as TrendData[],
 
   detections: [
     {

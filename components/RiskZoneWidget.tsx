@@ -1,8 +1,8 @@
-"use client";
-
+import { useState } from "react";
 import { Detection } from "@/lib/mock-data";
 import {
   PieChart, Pie, Cell, Tooltip, ResponsiveContainer,
+  LineChart, Line, XAxis, YAxis, CartesianGrid
 } from "recharts";
 
 type Props = { detections: Detection[] };
@@ -58,82 +58,145 @@ export default function RiskZoneWidget({ detections }: Props) {
   // However, Recharts passes cx/cy automatically to custom label. Wait, we put it manually.
   // Actually, we can use a custom label for Pie or absolute positioning.
   
+  const [activeTab, setActiveTab] = useState<"distribution" | "trends">("distribution");
+
+  const trendData = detections.map(d => ({
+    time: new Date(d.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    confidence: Math.round(d.confidenceScore * 100),
+  })).reverse(); // Assuming detections are newest first, reverse for chronological chart
+  
   return (
     <div style={{ height: "100%", display: "flex", flexDirection: "column", padding: "8px 4px" }}>
-      <div style={{ position: "relative", flex: 1, minHeight: "140px" }}>
-        <ResponsiveContainer width="100%" height="100%">
-          <PieChart>
-            <Pie
-              data={data}
-              cx="50%"
-              cy="50%"
-              innerRadius="65%"
-              outerRadius="90%"
-              paddingAngle={3}
-              dataKey="value"
-              startAngle={90}
-              endAngle={-270}
-              labelLine={false}
-              stroke="none"
-            >
-              {data.map(entry => (
-                <Cell key={entry.name} fill={COLORS[entry.name as keyof typeof COLORS]} />
-              ))}
-            </Pie>
-            <Tooltip content={<CustomTooltip />} />
-          </PieChart>
-        </ResponsiveContainer>
-        {/* Absolute positioned center label to avoid SVG coord issues with CSS vars */}
-        <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)", textAlign: "center", pointerEvents: "none" }}>
-          <div style={{ fontSize: "26px", fontWeight: 700, color: "var(--text-primary)", lineHeight: 1 }}>{total}</div>
-          <div style={{ fontSize: "11px", color: "var(--text-secondary)", marginTop: "2px" }}>total</div>
-        </div>
+      {/* Custom Tabs */}
+      <div style={{ display: "flex", gap: "2px", background: "rgba(0,0,0,0.2)", padding: "2px", borderRadius: "6px", margin: "0 16px 8px" }}>
+        <button
+          onClick={() => setActiveTab("distribution")}
+          style={{
+            flex: 1, padding: "4px 8px", fontSize: "11px", fontWeight: 600, borderRadius: "4px",
+            background: activeTab === "distribution" ? "var(--glass-bg)" : "transparent",
+            color: activeTab === "distribution" ? "var(--text-primary)" : "var(--text-secondary)",
+            border: activeTab === "distribution" ? "1px solid var(--glass-border)" : "1px solid transparent",
+            cursor: "pointer", transition: "all 0.2s"
+          }}
+        >
+          Distribution
+        </button>
+        <button
+          onClick={() => setActiveTab("trends")}
+          style={{
+            flex: 1, padding: "4px 8px", fontSize: "11px", fontWeight: 600, borderRadius: "4px",
+            background: activeTab === "trends" ? "var(--glass-bg)" : "transparent",
+            color: activeTab === "trends" ? "var(--text-primary)" : "var(--text-secondary)",
+            border: activeTab === "trends" ? "1px solid var(--glass-border)" : "1px solid transparent",
+            cursor: "pointer", transition: "all 0.2s"
+          }}
+        >
+          Trends
+        </button>
       </div>
 
-      {/* Legend rows */}
-      <div style={{ padding: "8px 16px 12px", display: "flex", flexDirection: "column", gap: "8px" }}>
-        {[
-          { label: "High Risk",   count: high,   color: COLORS.High,   desc: "conf ≥ 90%" },
-          { label: "Medium Risk", count: medium, color: COLORS.Medium, desc: "conf 75–89%" },
-          { label: "Low Risk",    count: low,    color: COLORS.Low,    desc: "conf < 75%" },
-        ].map(row => (
-          <div key={row.label} style={{ display: "flex", alignItems: "center", gap: "8px", minWidth: 0 }}>
-            {/* Color dot */}
-            <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: row.color, flexShrink: 0 }} />
-            {/* Label — grows, truncates if narrow */}
-            <span style={{
-              fontSize: "12px",
-              color: "var(--text-primary)",
-              flex: 1,
-              minWidth: 0,
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              whiteSpace: "nowrap",
-              paddingRight: "4px",
-            }}>{row.label}</span>
-            {/* Descriptor — fixed-width, never overlaps label */}
-            <span style={{
-              fontSize: "11px",
-              color: "var(--text-secondary)",
-              flexShrink: 0,
-              minWidth: "72px",
-              textAlign: "right",
-              whiteSpace: "nowrap",
-            }}>{row.desc}</span>
-            {/* Count — fixed-width right column */}
-            <span style={{
-              fontSize: "13px",
-              fontWeight: 600,
-              color: row.color,
-              fontVariantNumeric: "tabular-nums",
-              flexShrink: 0,
-              minWidth: "24px",
-              textAlign: "right",
-              paddingLeft: "6px",
-            }}>{row.count}</span>
+      {activeTab === "distribution" ? (
+        <>
+          <div style={{ position: "relative", flex: 1, minHeight: "140px" }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={data}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius="65%"
+                  outerRadius="90%"
+                  paddingAngle={3}
+                  dataKey="value"
+                  startAngle={90}
+                  endAngle={-270}
+                  labelLine={false}
+                  stroke="none"
+                >
+                  {data.map(entry => (
+                    <Cell key={entry.name} fill={COLORS[entry.name as keyof typeof COLORS]} />
+                  ))}
+                </Pie>
+                <Tooltip content={<CustomTooltip />} />
+              </PieChart>
+            </ResponsiveContainer>
+            {/* Absolute positioned center label to avoid SVG coord issues with CSS vars */}
+            <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)", textAlign: "center", pointerEvents: "none" }}>
+              <div style={{ fontSize: "26px", fontWeight: 700, color: "var(--text-primary)", lineHeight: 1 }}>{total}</div>
+              <div style={{ fontSize: "11px", color: "var(--text-secondary)", marginTop: "2px" }}>total</div>
+            </div>
           </div>
-        ))}
-      </div>
+
+          {/* Legend rows */}
+          <div style={{ padding: "8px 16px 12px", display: "flex", flexDirection: "column", gap: "8px" }}>
+            {[
+              { label: "High Risk",   count: high,   color: COLORS.High,   desc: "conf ≥ 90%" },
+              { label: "Medium Risk", count: medium, color: COLORS.Medium, desc: "conf 75–89%" },
+              { label: "Low Risk",    count: low,    color: COLORS.Low,    desc: "conf < 75%" },
+            ].map(row => (
+              <div key={row.label} style={{ display: "flex", alignItems: "center", gap: "8px", minWidth: 0 }}>
+                {/* Color dot */}
+                <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: row.color, flexShrink: 0 }} />
+                {/* Label — grows, truncates if narrow */}
+                <span style={{
+                  fontSize: "12px",
+                  color: "var(--text-primary)",
+                  flex: 1,
+                  minWidth: 0,
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                  paddingRight: "4px",
+                }}>{row.label}</span>
+                {/* Descriptor — fixed-width, never overlaps label */}
+                <span style={{
+                  fontSize: "11px",
+                  color: "var(--text-secondary)",
+                  flexShrink: 0,
+                  minWidth: "72px",
+                  textAlign: "right",
+                  whiteSpace: "nowrap",
+                }}>{row.desc}</span>
+                {/* Count — fixed-width right column */}
+                <span style={{
+                  fontSize: "13px",
+                  fontWeight: 600,
+                  color: row.color,
+                  fontVariantNumeric: "tabular-nums",
+                  flexShrink: 0,
+                  minWidth: "24px",
+                  textAlign: "right",
+                  paddingLeft: "6px",
+                }}>{row.count}</span>
+              </div>
+            ))}
+          </div>
+        </>
+      ) : (
+        <div style={{ flex: 1, padding: "0 16px 16px", minHeight: "180px" }}>
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={trendData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--glass-border)" vertical={false} />
+              <XAxis dataKey="time" stroke="var(--text-tertiary)" fontSize={10} tickLine={false} axisLine={false} />
+              <YAxis stroke="var(--text-tertiary)" fontSize={10} tickLine={false} axisLine={false} domain={[50, 100]} tickFormatter={(val) => `${val}%`} />
+              <Tooltip 
+                contentStyle={{ background: "var(--bg-panel)", border: "1px solid var(--glass-border)", borderRadius: "8px", fontSize: "12px" }}
+                itemStyle={{ color: "var(--color-med)" }}
+                labelStyle={{ color: "var(--text-secondary)", marginBottom: "4px" }}
+                formatter={(value: number) => [`${value}%`, "Confidence"]}
+              />
+              <Line 
+                type="monotone" 
+                dataKey="confidence" 
+                stroke="var(--color-med)" 
+                strokeWidth={2}
+                dot={{ r: 3, fill: "var(--color-med)", strokeWidth: 0 }}
+                activeDot={{ r: 5 }}
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+      )}
     </div>
   );
 }

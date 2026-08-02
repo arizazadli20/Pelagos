@@ -12,6 +12,10 @@ export default function ConversionTracker({ entries }: Props) {
   );
   const pct = Math.round((totals.conv / totals.col) * 100);
 
+  const cost = totals.col * 1.20;
+  const revenue = totals.bit * 0.45; // $0.45 per kg of bitumen
+  const co2Offset = totals.conv * 2.5; // 2.5 kg CO2 saved per kg recycled
+
   const data = [
     { name: "Converted", value: pct, color: "var(--accent-teal)" },
     { name: "Pending", value: 100 - pct, color: "rgba(255, 255, 255, 0.05)" }
@@ -96,6 +100,28 @@ export default function ConversionTracker({ entries }: Props) {
             marginTop: "8px",
           }}>
             Recovery Rate
+          </div>
+        </div>
+      </div>
+
+      {/* Financial & CO2 Impact Row */}
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "8px", marginTop: "12px", borderTop: "1px solid var(--glass-border)", paddingTop: "12px" }}>
+        <div>
+          <div style={{ fontSize: "10px", color: "var(--text-secondary)", marginBottom: "4px" }}>Est. Cost</div>
+          <div style={{ fontSize: "14px", fontWeight: 600, color: "var(--color-high)", fontVariantNumeric: "tabular-nums" }}>
+            ${cost.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+          </div>
+        </div>
+        <div>
+          <div style={{ fontSize: "10px", color: "var(--text-secondary)", marginBottom: "4px" }}>Bitumen Rev</div>
+          <div style={{ fontSize: "14px", fontWeight: 600, color: "var(--accent-teal)", fontVariantNumeric: "tabular-nums" }}>
+            +${revenue.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+          </div>
+        </div>
+        <div>
+          <div style={{ fontSize: "10px", color: "var(--text-secondary)", marginBottom: "4px" }}>CO₂ Offset</div>
+          <div style={{ fontSize: "14px", fontWeight: 600, color: "var(--color-med)", fontVariantNumeric: "tabular-nums" }}>
+            {co2Offset.toLocaleString(undefined, { maximumFractionDigits: 0 })} kg
           </div>
         </div>
       </div>
