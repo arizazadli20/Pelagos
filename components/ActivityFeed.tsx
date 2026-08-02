@@ -162,6 +162,12 @@ export default function ActivityFeed({ entries, onEventClick }: Props) {
                 <span>{portName(entry.portId)}</span>
                 <span style={{ color: "var(--text-tertiary)" }}>•</span>
                 <span>{timeAgo(entry.timestamp)}</span>
+                {entry.incidentId && (
+                  <>
+                    <span style={{ color: "var(--text-tertiary)" }}>•</span>
+                    <span style={{ fontFamily: "monospace", letterSpacing: "0.05em", color: "var(--color-med)" }}>{entry.incidentId}</span>
+                  </>
+                )}
               </div>
             </div>
           </div>

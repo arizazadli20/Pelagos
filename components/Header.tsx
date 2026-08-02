@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import {
   Globe, ChevronDown, LayoutTemplate, Maximize, Settings, Check, Edit2, RotateCcw,
-  Satellite, Eye, EyeOff, LogOut, Bell,
+  Satellite, Eye, EyeOff, LogOut, Bell, Download
 } from "lucide-react";
 import { Port, AlertMessage } from "@/lib/mock-data";
 import StageTracker from "@/components/StageTracker";
@@ -26,6 +26,8 @@ type Props = {
   onResetLayout?: () => void;
   alerts?: AlertMessage[];
   onAcknowledgeAlert?: (id: string) => void;
+  onExportCsv?: () => void;
+  onExportPdf?: () => void;
 };
 
 // ─── Live Clock ───────────────────────────────────────────────────────────────
@@ -221,13 +223,17 @@ export default function Header({
   onResetLayout,
   alerts = [],
   onAcknowledgeAlert,
+  onExportCsv,
+  onExportPdf,
 }: Props) {
   const [showThemeMenu, setShowThemeMenu] = useState(false);
   const [showAlerts, setShowAlerts] = useState(false);
+  const [showExportMenu, setShowExportMenu] = useState(false);
   const themeMenuRef = useRef<HTMLDivElement>(null);
   const alertsMenuRef = useRef<HTMLDivElement>(null);
+  const exportMenuRef = useRef<HTMLDivElement>(null);
 
-  // Close theme menu on outside click
+  // Close menus on outside click
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (themeMenuRef.current && !themeMenuRef.current.contains(e.target as Node)) {
@@ -236,10 +242,13 @@ export default function Header({
       if (alertsMenuRef.current && !alertsMenuRef.current.contains(e.target as Node)) {
         setShowAlerts(false);
       }
+      if (exportMenuRef.current && !exportMenuRef.current.contains(e.target as Node)) {
+        setShowExportMenu(false);
+      }
     };
-    if (showThemeMenu || showAlerts) document.addEventListener("mousedown", handler);
+    if (showThemeMenu || showAlerts || showExportMenu) document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
-  }, [showThemeMenu, showAlerts]);
+  }, [showThemeMenu, showAlerts, showExportMenu]);
 
   const unreadAlerts = alerts.filter(a => !a.acknowledged);
   const unreadCount = unreadAlerts.length;
@@ -400,6 +409,73 @@ export default function Header({
             color="var(--text-secondary)"
             style={{ position: "absolute", right: "12px", top: "50%", transform: "translateY(-50%)", pointerEvents: "none" }}
           />
+        </div>
+
+        <Divider />
+
+        {/* Export Button */}
+        <div ref={exportMenuRef} style={{ position: "relative", flexShrink: 0 }}>
+          <button
+            onClick={() => setShowExportMenu(v => !v)}
+            style={{
+              background: "transparent",
+              border: "1px solid var(--glass-border)",
+              color: "var(--text-primary)",
+              display: "flex",
+              alignItems: "center",
+              gap: "6px",
+              padding: "6px 12px",
+              borderRadius: "8px",
+              fontSize: "12px",
+              fontWeight: 500,
+              cursor: "pointer",
+              transition: "background 0.2s"
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.background = "var(--glass-bg-hover)")}
+            onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+          >
+            <Download size={14} /> Export
+          </button>
+          {showExportMenu && (
+            <div style={{
+              position: "absolute",
+              top: "36px",
+              left: 0,
+              width: "160px",
+              background: "rgba(26, 29, 41, 0.97)",
+              backdropFilter: "blur(16px)",
+              border: "1px solid var(--glass-border)",
+              borderRadius: "8px",
+              padding: "4px",
+              display: "flex",
+              flexDirection: "column",
+              boxShadow: "0 8px 32px rgba(0,0,0,0.6)",
+              zIndex: 200,
+            }}>
+              <button
+                onClick={() => { setShowExportMenu(false); onExportCsv?.(); }}
+                style={{
+                  background: "transparent", border: "none", color: "var(--text-primary)", padding: "8px 12px",
+                  textAlign: "left", fontSize: "12px", cursor: "pointer", borderRadius: "4px"
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.background = "var(--glass-bg-hover)")}
+                onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+              >
+                Export CSV Data
+              </button>
+              <button
+                onClick={() => { setShowExportMenu(false); onExportPdf?.(); }}
+                style={{
+                  background: "transparent", border: "none", color: "var(--text-primary)", padding: "8px 12px",
+                  textAlign: "left", fontSize: "12px", cursor: "pointer", borderRadius: "4px"
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.background = "var(--glass-bg-hover)")}
+                onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+              >
+                Download PDF Report
+              </button>
+            </div>
+          )}
         </div>
       </div>
 

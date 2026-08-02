@@ -28,6 +28,8 @@ export type Detection = {
   confidenceScore: number;
   areaKm2: number;
   status: DetectionStatus;
+  incidentId: string;
+  reportStatus: "Pending" | "Sent" | "Acknowledged";
   alertLatencyMin: number;
 };
 
@@ -42,6 +44,7 @@ export type ActivityEntry = {
   event: string;
   portId: string;
   type: "detection" | "alert" | "dispatch" | "collection" | "conversion" | "info";
+  incidentId?: string;
 };
 
 export type ConversionEntry = {
@@ -184,6 +187,8 @@ export const mockData = {
   detections: [
     {
       id: "det-001",
+      incidentId: "INC-20260711-A",
+      reportStatus: "Sent",
       portId: "baku",
       lat: 40.368,
       lng: 49.847,
@@ -195,6 +200,8 @@ export const mockData = {
     },
     {
       id: "det-002",
+      incidentId: "INC-20260712-A",
+      reportStatus: "Acknowledged",
       portId: "baku",
       lat: 40.373,
       lng: 49.858,
@@ -206,6 +213,8 @@ export const mockData = {
     },
     {
       id: "det-003",
+      incidentId: "INC-20260713-A",
+      reportStatus: "Pending",
       portId: "sumgait",
       lat: 40.592,
       lng: 49.637,
@@ -217,6 +226,8 @@ export const mockData = {
     },
     {
       id: "det-004",
+      incidentId: "INC-20260714-A",
+      reportStatus: "Sent",
       portId: "baku",
       lat: 40.364,
       lng: 49.843,
@@ -228,6 +239,8 @@ export const mockData = {
     },
     {
       id: "det-005",
+      incidentId: "INC-20260715-A",
+      reportStatus: "Acknowledged",
       portId: "alyat",
       lat: 39.958,
       lng: 49.418,
@@ -239,6 +252,8 @@ export const mockData = {
     },
     {
       id: "det-006",
+      incidentId: "INC-20260716-A",
+      reportStatus: "Pending",
       portId: "baku",
       lat: 40.375,
       lng: 49.852,
@@ -250,6 +265,8 @@ export const mockData = {
     },
     {
       id: "det-007",
+      incidentId: "INC-20260717-A",
+      reportStatus: "Sent",
       portId: "sumgait",
       lat: 40.589,
       lng: 49.641,
@@ -261,6 +278,8 @@ export const mockData = {
     },
     {
       id: "det-008",
+      incidentId: "INC-20260718-A",
+      reportStatus: "Acknowledged",
       portId: "baku",
       lat: 40.371,
       lng: 49.849,
@@ -272,6 +291,8 @@ export const mockData = {
     },
     {
       id: "det-009",
+      incidentId: "INC-20260719-A",
+      reportStatus: "Pending",
       portId: "alyat",
       lat: 39.962,
       lng: 49.422,
@@ -283,6 +304,8 @@ export const mockData = {
     },
     {
       id: "det-010",
+      incidentId: "INC-20260720-A",
+      reportStatus: "Sent",
       portId: "baku",
       lat: 40.366,
       lng: 49.845,

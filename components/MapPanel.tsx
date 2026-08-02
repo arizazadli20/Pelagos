@@ -103,7 +103,7 @@ function makePopup(det: Detection) {
     <div style="padding:16px;font-family:Inter,-apple-system,sans-serif;min-width:240px;">
       <div style="display:flex;align-items:center;gap:6px;margin-bottom:14px;">
         <div style="width:6px;height:6px;border-radius:50%;background:var(--color-low);flex-shrink:0;"></div>
-        <span style="font-size:12px;font-weight:600;color:var(--text-primary);">Active Spill · ${det.id.toUpperCase()}</span>
+        <span style="font-size:12px;font-weight:600;color:var(--text-primary);">Active Spill · ${((det as any).incidentId || det.id).toUpperCase()}</span>
       </div>
 
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">

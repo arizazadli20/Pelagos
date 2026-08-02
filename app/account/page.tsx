@@ -35,7 +35,12 @@ export default function DashboardPage() {
     }
   }, [router]);
 
-  const [selectedPort, setSelectedPort] = useState<Port>(mockData.ports[0]);
+  const extendedPorts: Port[] = [
+    { id: "global", name: "Global Overview", lat: 40.25, lng: 49.5 },
+    ...mockData.ports,
+  ];
+
+  const [selectedPort, setSelectedPort] = useState<Port>(extendedPorts[0]);
   const [layoutMode, setLayoutMode] = useState<LayoutMode>('grid');
   const [mapTheme, setMapTheme] = useState<'dark' | 'light' | 'satellite'>('dark');
   const [activeMapCoords, setActiveMapCoords] = useState<[number, number] | null>(null);
@@ -73,12 +78,36 @@ export default function DashboardPage() {
 
   if (!mounted || !isAuthenticated) return null;
 
-  const detections = [...mockData.detections].sort(
-    (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
-  );
-  const activity = [...mockData.activityLog].sort(
-    (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
-  );
+  const detections = [...mockData.detections]
+    .filter(d => selectedPort.id === "global" || d.portId === selectedPort.id)
+    .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+
+  const activity = [...mockData.activityLog]
+    .filter(a => selectedPort.id === "global" || a.portId === selectedPort.id)
+    .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+
+  const vessels = selectedPort.id === "global" 
+    ? mockData.vessels 
+    : mockData.vessels.filter(v => v.portId === selectedPort.id);
+
+  const handleExportCsv = () => {
+    let csv = "Incident ID,Date,Port,Confidence,Area km2,Alert Latency Min,Status,Report Status\n";
+    detections.forEach(d => {
+      csv += `${(d as any).incidentId || d.id},${d.timestamp},${d.portId},${d.confidenceScore},${d.areaKm2},${d.alertLatencyMin},${d.status},${(d as any).reportStatus || 'Pending'}\n`;
+    });
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", `TIKVA_Detections_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const handleExportPdf = () => {
+    window.print();
+  };
 
   // Mock last update times (e.g. 1-5 minutes ago)
   const now = new Date();
@@ -87,7 +116,7 @@ export default function DashboardPage() {
   const widgets = [
     { id: "kpi",        content: <IncidentKpiWidget detections={detections} />, updatedAt: mockUpdatedAt },
     { id: "riskzone",   content: <RiskZoneWidget detections={detections} />, updatedAt: mockUpdatedAt },
-    { id: "vessels",    content: <VesselsWidget vessels={mockData.vessels} port={selectedPort} />, updatedAt: mockUpdatedAt },
+    { id: "vessels",    content: <VesselsWidget vessels={vessels} port={selectedPort} />, updatedAt: mockUpdatedAt },
     { id: "activity",   content: <ActivityFeed entries={activity} onEventClick={(lat, lng) => setActiveMapCoords([lat, lng])} />, updatedAt: mockUpdatedAt },
     { id: "conversion", content: <ConversionTracker entries={mockData.conversionLog} />, updatedAt: mockUpdatedAt },
     { id: "history",    content: <HistoryTable detections={detections} />, updatedAt: mockUpdatedAt },
@@ -101,7 +130,7 @@ export default function DashboardPage() {
       
       {/* ── Header ── */}
       <Header
-        ports={mockData.ports}
+        ports={extendedPorts}
         selectedPort={selectedPort}
         onPortChange={setSelectedPort}
         layoutMode={layoutMode}
@@ -116,6 +145,8 @@ export default function DashboardPage() {
         onResetLayout={() => setResetSignal(r => r + 1)}
         alerts={alerts}
         onAcknowledgeAlert={handleAcknowledgeAlert}
+        onExportCsv={handleExportCsv}
+        onExportPdf={handleExportPdf}
       />
 
       {layoutMode === 'grid' ? (
