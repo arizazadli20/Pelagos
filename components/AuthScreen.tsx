@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Globe, ArrowRight, Loader2, CheckCircle2 } from "lucide-react";
+import { Globe, ArrowRight, Loader2, CheckCircle2, Shield } from "lucide-react";
 
 type Props = {
   onLogin: () => void;
