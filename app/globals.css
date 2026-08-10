@@ -1,3 +1,5 @@
+@import "tailwindcss";
+
 /* ── Global reset & Variables ── */
 :root {
   /* Strict 4-color palette */

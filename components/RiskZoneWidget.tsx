@@ -183,7 +183,10 @@ export default function RiskZoneWidget({ detections }: Props) {
                 contentStyle={{ background: "var(--bg-panel)", border: "1px solid var(--glass-border)", borderRadius: "8px", fontSize: "12px" }}
                 itemStyle={{ color: "var(--color-med)" }}
                 labelStyle={{ color: "var(--text-secondary)", marginBottom: "4px" }}
-                formatter={(value: number) => [`${value}%`, "Confidence"]}
+                formatter={(value) => {
+                  const numericValue = typeof value === 'number' ? value : Number(value ?? 0);
+                  return [`${numericValue}%`, "Confidence"];
+                }}
               />
               <Line 
                 type="monotone" 
