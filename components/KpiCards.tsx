@@ -1,102 +1,145 @@
 "use client";
 
-import { KPIs } from "@/lib/mock-data";
+import { DashboardKpis, formatAreaM2 } from "@/lib/mock-data";
+import {
+  AlertTriangle,
+  ShieldAlert,
+  Maximize2,
+  Droplets,
+  Brain,
+} from "lucide-react";
 
-type Props = { kpis: KPIs };
+type Props = {
+  kpis: DashboardKpis;
+};
 
-function Card({
-  id, label, value, unit, target, targetLabel, met, fillPct
-}: {
-  id: string; label: string; value: string; unit?: string;
-  target: string; targetLabel: string; met: boolean; fillPct: number;
-}) {
+type CardProps = {
+  label: string;
+  value: string;
+  hint?: string;
+  icon: React.ReactNode;
+  accent?: string;
+};
+
+function KpiCard({ label, value, hint, icon, accent = "var(--accent)" }: CardProps) {
   return (
-    <div id={id} style={{
-      background: "#1a1a1a",
-      border: "1px solid #2e2e2e",
-      borderRadius: "8px",
-      padding: "20px",
-    }}>
-      {/* Label + target */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
-        <span style={{ fontSize: "13px", color: "#888" }}>{label}</span>
-        <span style={{
-          fontSize: "11px",
-          color: met ? "#22c55e" : "#888",
-          background: met ? "#0f2318" : "#1e1e1e",
-          border: `1px solid ${met ? "#1a3828" : "#2e2e2e"}`,
-          borderRadius: "4px",
-          padding: "2px 7px",
-        }}>
-          {targetLabel}
-        </span>
-      </div>
-
-      {/* Big number */}
-      <div style={{ display: "flex", alignItems: "baseline", gap: "4px", marginBottom: "14px" }}>
-        <span style={{
-          fontSize: "40px",
-          fontWeight: 700,
-          letterSpacing: "-0.02em",
-          lineHeight: 1,
-          color: met ? "#e5e5e5" : "#e5e5e5",
-          fontVariantNumeric: "tabular-nums",
-        }}>
-          {value}
-        </span>
-        {unit && <span style={{ fontSize: "16px", color: "#666", fontWeight: 500 }}>{unit}</span>}
-      </div>
-
-      {/* Progress bar */}
-      <div style={{ background: "#2a2a2a", borderRadius: "2px", height: "4px", overflow: "hidden" }}>
-        <div
-          className="bar-grow"
+    <div
+      style={{
+        background: "var(--bg-elevated)",
+        border: "1px solid var(--glass-border)",
+        borderRadius: 10,
+        padding: "16px 18px",
+        display: "flex",
+        flexDirection: "column",
+        gap: 10,
+        minWidth: 0,
+      }}
+    >
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <span
           style={{
-            height: "100%",
-            width: `${Math.min(100, fillPct)}%`,
-            background: met ? "#22c55e" : "#555",
-            borderRadius: "2px",
+            fontSize: 11,
+            fontWeight: 600,
+            letterSpacing: "0.07em",
+            textTransform: "uppercase",
+            color: "var(--text-secondary)",
           }}
-        />
+        >
+          {label}
+        </span>
+        <span
+          style={{
+            width: 30,
+            height: 30,
+            borderRadius: 8,
+            background: `${accent}18`,
+            color: accent,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            flexShrink: 0,
+          }}
+        >
+          {icon}
+        </span>
       </div>
-      <div style={{ marginTop: "6px", fontSize: "11px", color: met ? "#22c55e" : "#888" }}>
-        {met ? "Target met" : "Below target"} · {targetLabel}
+      <div
+        style={{
+          fontSize: 28,
+          fontWeight: 600,
+          letterSpacing: "-0.02em",
+          lineHeight: 1.1,
+          color: "var(--text-primary)",
+          fontVariantNumeric: "tabular-nums",
+        }}
+      >
+        {value}
       </div>
+      {hint && (
+        <div style={{ fontSize: 11, color: "var(--text-tertiary)" }}>{hint}</div>
+      )}
     </div>
   );
 }
 
 export default function KpiCards({ kpis }: Props) {
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "12px" }}>
-      <Card
-        id="kpi-accuracy"
-        label="Detection Accuracy"
-        value={`${Math.round(kpis.detectionAccuracy * 100)}%`}
-        target="85%"
-        targetLabel="≥ 85%"
-        met={kpis.detectionAccuracy >= 0.85}
-        fillPct={(kpis.detectionAccuracy / 1) * 100}
+    <div
+      style={{
+        display: "grid",
+        gridTemplateColumns: "repeat(5, minmax(0, 1fr))",
+        gap: 12,
+      }}
+      className="kpi-grid"
+    >
+      <KpiCard
+        label="Active Incidents"
+        value={String(kpis.activeIncidents)}
+        hint="Open cases across Caspian ops"
+        icon={<AlertTriangle size={15} strokeWidth={2} />}
+        accent="var(--color-high)"
       />
-      <Card
-        id="kpi-latency"
-        label="Avg. Alert Latency"
-        value={`${kpis.avgAlertLatencyMin}`}
-        unit="min"
-        target="30"
-        targetLabel="< 30 min"
-        met={kpis.avgAlertLatencyMin <= 30}
-        fillPct={((30 - kpis.avgAlertLatencyMin) / 30) * 100}
+      <KpiCard
+        label="High Risk"
+        value={String(kpis.highRisk)}
+        hint="Requires priority review"
+        icon={<ShieldAlert size={15} strokeWidth={2} />}
+        accent="var(--color-med)"
       />
-      <Card
-        id="kpi-conversion"
-        label="Conversion Rate"
-        value={`${Math.round(kpis.conversionRate * 100)}%`}
-        target="60%"
-        targetLabel="≥ 60%"
-        met={kpis.conversionRate >= 0.60}
-        fillPct={(kpis.conversionRate / 1) * 100}
+      <KpiCard
+        label="Detected Area"
+        value={formatAreaM2(kpis.detectedAreaM2)}
+        hint="Active spill footprint"
+        icon={<Maximize2 size={15} strokeWidth={2} />}
+        accent="var(--accent)"
       />
+      <KpiCard
+        label="Cleaned Area"
+        value={formatAreaM2(kpis.cleanedAreaM2)}
+        hint="Cleaning + resolved"
+        icon={<Droplets size={15} strokeWidth={2} />}
+        accent="var(--color-low)"
+      />
+      <KpiCard
+        label="AI Confidence"
+        value={`${Math.round(kpis.aiConfidence * 100)}%`}
+        hint="Avg. model probability"
+        icon={<Brain size={15} strokeWidth={2} />}
+        accent="var(--accent)"
+      />
+
+      <style>{`
+        @media (max-width: 1200px) {
+          .kpi-grid {
+            grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+          }
+        }
+        @media (max-width: 700px) {
+          .kpi-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+          }
+        }
+      `}</style>
     </div>
   );
 }

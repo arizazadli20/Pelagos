@@ -1,0 +1,119 @@
+"use client";
+
+import {
+  Incident,
+  INCIDENT_STATUS_LABEL,
+  formatAreaM2,
+  formatTimeAZT,
+  RiskLevel,
+} from "@/lib/mock-data";
+
+type Props = {
+  incidents: Incident[];
+};
+
+function riskClass(risk: RiskLevel) {
+  if (risk === "HIGH") return "pill pill-high";
+  if (risk === "MEDIUM") return "pill pill-medium";
+  return "pill pill-low";
+}
+
+export default function RecentIncidents({ incidents }: Props) {
+  const sorted = [...incidents].sort(
+    (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+  );
+
+  return (
+    <div className="panel" style={{ height: "100%" }}>
+      <div className="panel-header">
+        <span className="panel-title">Recent Incidents</span>
+        <span style={{ fontSize: 11, color: "var(--text-tertiary)" }}>
+          {sorted.length} records
+        </span>
+      </div>
+
+      <div className="panel-body">
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "70px 1.3fr 70px 90px 80px 1fr",
+            padding: "10px 16px",
+            borderBottom: "1px solid var(--glass-border)",
+            background: "rgba(0,0,0,0.18)",
+            position: "sticky",
+            top: 0,
+            zIndex: 1,
+          }}
+        >
+          {["ID", "Location", "Time", "Area", "Risk", "Status"].map((h) => (
+            <span
+              key={h}
+              style={{
+                fontSize: 10,
+                fontWeight: 600,
+                letterSpacing: "0.07em",
+                textTransform: "uppercase",
+                color: "var(--text-tertiary)",
+              }}
+            >
+              {h}
+            </span>
+          ))}
+        </div>
+
+        {sorted.map((inc, i) => (
+          <div
+            key={inc.id}
+            className="row-hover"
+            style={{
+              display: "grid",
+              gridTemplateColumns: "70px 1.3fr 70px 90px 80px 1fr",
+              padding: "12px 16px",
+              alignItems: "center",
+              borderBottom:
+                i < sorted.length - 1 ? "1px solid rgba(42,63,85,0.35)" : "none",
+              borderRadius: 0,
+            }}
+          >
+            <span
+              style={{
+                fontSize: 12,
+                fontWeight: 600,
+                fontFamily: "ui-monospace, 'IBM Plex Mono', monospace",
+                color: "var(--accent)",
+                letterSpacing: "0.03em",
+              }}
+            >
+              {inc.displayId}
+            </span>
+            <span style={{ fontSize: 13, color: "var(--text-primary)", fontWeight: 500 }}>
+              {inc.location}
+            </span>
+            <span
+              style={{
+                fontSize: 12,
+                color: "var(--text-secondary)",
+                fontVariantNumeric: "tabular-nums",
+              }}
+            >
+              {formatTimeAZT(inc.timestamp)}
+            </span>
+            <span
+              style={{
+                fontSize: 12,
+                color: "var(--text-secondary)",
+                fontVariantNumeric: "tabular-nums",
+              }}
+            >
+              {formatAreaM2(inc.areaM2)}
+            </span>
+            <span className={riskClass(inc.risk)}>{inc.risk}</span>
+            <span className={`pill pill-${inc.status}`}>
+              {INCIDENT_STATUS_LABEL[inc.status]}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}

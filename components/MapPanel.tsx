@@ -1,311 +1,394 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Detection, Port } from "@/lib/mock-data";
+import {
+  CASPIAN_OVERVIEW,
+  Incident,
+  INCIDENT_STATUS_LABEL,
+  RiskZone,
+  Vessel,
+  formatAreaM2,
+} from "@/lib/mock-data";
 
 type Props = {
-  port: Port;
-  ports: Port[];
-  detections: Detection[];
-  onPortChange: (port: Port) => void;
-  hideHeader?: boolean;
-  mapTheme?: 'dark' | 'light' | 'satellite';
+  incidents: Incident[];
+  vessels: Vessel[];
+  riskZones: RiskZone[];
+  activeMapCoords?: [number, number] | null;
+  mapTheme?: "dark" | "light";
 };
 
-function spillPolygon(det: Detection): [number, number][] {
-  const r = Math.sqrt(det.areaKm2) * 0.0044;
-  return [
-    [det.lat + r * 0.55, det.lng - r * 0.95],
-    [det.lat + r * 0.95, det.lng + r * 0.25],
-    [det.lat + r * 0.30, det.lng + r * 1.05],
-    [det.lat - r * 0.50, det.lng + r * 0.85],
-    [det.lat - r * 0.95, det.lng - r * 0.15],
-    [det.lat - r * 0.20, det.lng - r * 1.10],
-  ];
+function riskColor(risk: Incident["risk"]) {
+  if (risk === "HIGH") return "#ef4444";
+  if (risk === "MEDIUM") return "#f59e0b";
+  return "#22c55e";
 }
 
-function fmtUTC(ts: string) {
-  const d = new Date(ts);
-  return d.toUTCString().slice(5, 22) + " UTC";
-}
-
-function createIcon(L: any, isActive: boolean) {
-  const color = isActive ? "var(--color-low)" : "var(--text-secondary)";
-  const size  = isActive ? 10 : 7;
-  const html  = `
-    <div style="position:relative;width:${size * 4}px;height:${size * 4}px;display:flex;align-items:center;justify-content:center;">
-      ${isActive ? `
-        <div style="
-          position:absolute;top:50%;left:50%;
-          width:${size * 3.5}px;height:${size * 3.5}px;
-          border-radius:50%;
-          border:1px solid ${color}44;
-          transform:translate(-50%,-50%);
-          animation:markerRing 2s ease-out infinite;
-        "></div>
-      ` : ""}
+function createSpillIcon(L: any, active: boolean) {
+  const size = active ? 12 : 10;
+  const html = `
+    <div style="position:relative;width:${size * 3.2}px;height:${size * 3.2}px;display:flex;align-items:center;justify-content:center;">
+      ${
+        active
+          ? `<div style="
+              position:absolute;top:50%;left:50%;
+              width:${size * 2.8}px;height:${size * 2.8}px;
+              border-radius:50%;
+              border:1px solid rgba(239,68,68,0.45);
+              transform:translate(-50%,-50%);
+              animation:markerRing 2s ease-out infinite;
+            "></div>`
+          : ""
+      }
       <div style="
         width:${size}px;height:${size}px;
         border-radius:50%;
-        background:${color};
-        border:2px solid ${isActive ? "#fff" : "var(--border-muted)"};
-        ${isActive ? "animation:markerPulse 2s ease-out infinite;" : ""}
+        background:#ef4444;
+        border:2px solid #fff;
+        box-shadow:0 1px 4px rgba(0,0,0,0.45);
+        ${active ? "animation:markerPulse 2s ease-out infinite;" : ""}
       "></div>
     </div>
   `;
-  return L.divIcon({ html, className: "", iconSize: [size * 4, size * 4], iconAnchor: [size * 2, size * 2] });
+  return L.divIcon({
+    html,
+    className: "",
+    iconSize: [size * 3.2, size * 3.2],
+    iconAnchor: [size * 1.6, size * 1.6],
+  });
 }
 
-function makePopup(det: Detection) {
-  const conf = Math.round(det.confidenceScore * 100);
-  const statusLabel = det.status.replace("_", " ").replace(/\b\w/g, c => c.toUpperCase());
+function createVesselIcon(L: any, heading: number) {
+  const html = `
+    <div style="
+      width:14px;height:14px;
+      transform:rotate(${heading}deg);
+      display:flex;align-items:center;justify-content:center;
+    ">
+      <div style="
+        width:0;height:0;
+        border-left:5px solid transparent;
+        border-right:5px solid transparent;
+        border-bottom:11px solid #3b82f6;
+        filter:drop-shadow(0 1px 2px rgba(0,0,0,0.4));
+      "></div>
+    </div>
+  `;
+  return L.divIcon({
+    html,
+    className: "",
+    iconSize: [14, 14],
+    iconAnchor: [7, 7],
+  });
+}
+
+function makeIncidentPopup(inc: Incident) {
+  const pct = Math.round(inc.aiProbability * 100);
+  const risk = riskColor(inc.risk);
   return `
-    <div style="padding:16px;font-family:Inter,-apple-system,sans-serif;min-width:240px;">
-      <div style="display:flex;align-items:center;gap:6px;margin-bottom:14px;">
-        <div style="width:6px;height:6px;border-radius:50%;background:var(--color-low);flex-shrink:0;"></div>
-        <span style="font-size:12px;font-weight:600;color:var(--text-primary);">Active Spill · ${det.id.toUpperCase()}</span>
+    <div style="padding:16px;font-family:'IBM Plex Sans',sans-serif;min-width:240px;">
+      <div style="margin-bottom:4px;">
+        <div style="font-size:13px;font-weight:700;color:#e8eef4;letter-spacing:0.04em;">
+          INCIDENT ${inc.displayId}
+        </div>
+        <div style="font-size:12px;color:#8fa3b8;margin-top:3px;">${inc.location}</div>
       </div>
 
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
+      <div style="height:1px;background:rgba(42,63,85,0.7);margin:12px 0;"></div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
         <div>
-          <div style="font-size:11px;color:var(--text-secondary);margin-bottom:3px;">Confidence</div>
-          <div style="font-size:28px;font-weight:700;color:${conf >= 90 ? "var(--color-low)" : "var(--text-primary)"};line-height:1;font-variant-numeric:tabular-nums;">${conf}%</div>
+          <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.06em;color:#5c738a;margin-bottom:4px;">Area</div>
+          <div style="font-size:15px;font-weight:600;color:#e8eef4;font-variant-numeric:tabular-nums;">${formatAreaM2(inc.areaM2)}</div>
         </div>
         <div>
-          <div style="font-size:11px;color:var(--text-secondary);margin-bottom:3px;">Est. Area</div>
-          <div style="font-size:28px;font-weight:700;color:var(--text-primary);line-height:1;font-variant-numeric:tabular-nums;">${det.areaKm2}</div>
-          <div style="font-size:11px;color:var(--text-secondary);">km²</div>
+          <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.06em;color:#5c738a;margin-bottom:4px;">AI Probability</div>
+          <div style="font-size:15px;font-weight:600;color:#38bdf8;font-variant-numeric:tabular-nums;">${pct}%</div>
+        </div>
+        <div>
+          <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.06em;color:#5c738a;margin-bottom:4px;">Risk</div>
+          <div style="font-size:13px;font-weight:700;color:${risk};letter-spacing:0.05em;">${inc.risk}</div>
+        </div>
+        <div>
+          <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.06em;color:#5c738a;margin-bottom:4px;">Status</div>
+          <div style="font-size:13px;font-weight:600;color:#e8eef4;">${INCIDENT_STATUS_LABEL[inc.status].toUpperCase()}</div>
         </div>
       </div>
 
-      <div style="background:var(--bg-base);border:1px solid var(--glass-border);border-radius:6px;padding:10px;margin-bottom:10px;">
-        <div style="font-size:11px;color:var(--text-secondary);margin-bottom:3px;">Detected</div>
-        <div style="font-size:12px;color:var(--text-primary);font-family:monospace;">${fmtUTC(det.timestamp)}</div>
-      </div>
-
-      <div style="background:rgba(34, 197, 94, 0.1);border:1px solid rgba(34, 197, 94, 0.2);border-radius:6px;padding:10px;">
-        <div style="font-size:11px;color:var(--color-low);margin-bottom:2px;">Response time</div>
-        <div style="font-size:13px;color:var(--text-primary);">Alert sent <strong style="color:var(--color-low);">+${det.alertLatencyMin} min</strong> after image acquisition</div>
-      </div>
-
-      <div style="margin-top:10px;font-size:11px;color:var(--text-secondary);">Status: <span style="color:var(--text-primary);">${statusLabel}</span></div>
+      <button type="button" class="popup-view-btn">View Incident</button>
     </div>
   `;
 }
 
-export default function MapPanel({ port, ports, detections, onPortChange, hideHeader = false, mapTheme = 'dark' }: Props) {
-  const mapRef  = useRef<HTMLDivElement>(null);
+export default function MapPanel({
+  incidents,
+  vessels,
+  riskZones,
+  activeMapCoords,
+  mapTheme = "dark",
+}: Props) {
+  const mapRef = useRef<HTMLDivElement>(null);
   const mapInst = useRef<any>(null);
-  const markers = useRef<any[]>([]);
-  const polys   = useRef<any[]>([]);
+  const layersRef = useRef<any[]>([]);
   const tileLayerRef = useRef<any>(null);
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
     if (!mapRef.current || mapInst.current) return;
     let mounted = true;
+
     import("leaflet").then(({ default: L }) => {
       if (!mounted || !mapRef.current) return;
+
       delete (L.Icon.Default.prototype as any)._getIconUrl;
       L.Icon.Default.mergeOptions({
-        iconUrl:       "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
+        iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
         iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
-        shadowUrl:     "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+        shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
       });
+
       const map = L.map(mapRef.current!, {
-        center: [port.lat, port.lng],
-        zoom: 13,
-        zoomControl: false, // We'll reposition it via CSS or keep default top-left
-        dragging: true,
-        touchZoom: true,
+        center: [CASPIAN_OVERVIEW.lat, CASPIAN_OVERVIEW.lng],
+        zoom: CASPIAN_OVERVIEW.zoom,
+        zoomControl: false,
         scrollWheelZoom: true,
-        doubleClickZoom: true,
-        boxZoom: true,
       });
-      L.control.zoom({ position: 'topleft' }).addTo(map);
-      
+      L.control.zoom({ position: "topleft" }).addTo(map);
       mapInst.current = map;
-      
-      // Auto-resize observer to fix Immersive mode gaps
-      const ro = new ResizeObserver(() => {
-        map.invalidateSize();
-      });
+
+      const ro = new ResizeObserver(() => map.invalidateSize());
       ro.observe(mapRef.current);
 
       if (mounted) setLoaded(true);
     });
-    return () => { mounted = false; };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+
+    return () => {
+      mounted = false;
+    };
   }, []);
 
-  // Handle Tile Theme
   useEffect(() => {
     if (!mapInst.current || !loaded) return;
     const map = mapInst.current;
 
     import("leaflet").then(({ default: L }) => {
-      if (tileLayerRef.current) {
-        map.removeLayer(tileLayerRef.current);
-      }
-      const tileUrl = 
-        mapTheme === 'satellite' ? 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}' :
-        mapTheme === 'light' ? 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png' :
-        'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
-      
-      tileLayerRef.current = L.tileLayer(tileUrl, { maxZoom: 19 }).addTo(map);
+      if (tileLayerRef.current) map.removeLayer(tileLayerRef.current);
+      const tileUrl =
+        mapTheme === "light"
+          ? "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
+          : "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png";
+      tileLayerRef.current = L.tileLayer(tileUrl, {
+        maxZoom: 18,
+        attribution: "&copy; OpenStreetMap &copy; CARTO",
+      }).addTo(map);
       tileLayerRef.current.bringToBack();
     });
   }, [mapTheme, loaded]);
 
-  // Handle markers
   useEffect(() => {
     if (!mapInst.current || !loaded) return;
     const map = mapInst.current;
-    markers.current.forEach(m => map.removeLayer(m));
-    polys.current.forEach(p   => map.removeLayer(p));
-    markers.current = [];
-    polys.current   = [];
-    map.setView([port.lat, port.lng], 13, { animate: true, duration: 0.6 });
 
     import("leaflet").then(({ default: L }) => {
-      detections.filter(d => d.portId === port.id).forEach((det, idx) => {
-        const isActive = idx === 0;
+      layersRef.current.forEach((layer) => map.removeLayer(layer));
+      layersRef.current = [];
 
-        const poly = L.polygon(spillPolygon(det), {
-          color:       isActive ? "var(--color-low)" : "var(--border-muted)",
-          fillColor:   isActive ? "var(--color-low)" : "var(--bg-base)",
-          fillOpacity: isActive ? 0.08 : 0.04,
-          weight:      isActive ? 1.5 : 0.8,
-          dashArray:   isActive ? undefined : "4 6",
-        }).addTo(map);
-        polys.current.push(poly);
+      // Risk zones — yellow/orange translucent
+      riskZones.forEach((zone) => {
+        const isHigh = zone.level === "high";
+        const circle = L.circle([zone.lat, zone.lng], {
+          radius: zone.radiusM,
+          color: isHigh ? "#f59e0b" : "#eab308",
+          fillColor: isHigh ? "#f59e0b" : "#eab308",
+          fillOpacity: isHigh ? 0.14 : 0.1,
+          weight: 1.25,
+          opacity: 0.7,
+        }).bindTooltip(zone.name, { direction: "top", opacity: 0.9 });
+        circle.addTo(map);
+        layersRef.current.push(circle);
+      });
 
-        const marker = L.marker([det.lat, det.lng], { icon: createIcon(L, isActive) });
-        marker.bindPopup(L.popup({ maxWidth: 300, minWidth: 260 }).setContent(makePopup(det)));
+      // Oil spill markers — red
+      incidents.forEach((inc, idx) => {
+        const active = idx === 0 || inc.status === "detected" || inc.status === "under_review";
+        const marker = L.marker([inc.lat, inc.lng], {
+          icon: createSpillIcon(L, active && inc.status !== "resolved" && inc.status !== "rejected"),
+          zIndexOffset: 600,
+        });
+        marker.bindPopup(
+          L.popup({ maxWidth: 300, minWidth: 250 }).setContent(makeIncidentPopup(inc))
+        );
         marker.addTo(map);
-        markers.current.push(marker);
+        layersRef.current.push(marker);
+      });
 
-        if (isActive) setTimeout(() => marker.openPopup(), 400);
+      // Vessel markers — blue
+      vessels.forEach((v) => {
+        const marker = L.marker([v.lat, v.lng], {
+          icon: createVesselIcon(L, v.heading),
+          zIndexOffset: 400,
+        }).bindTooltip(
+          `<strong>${v.name}</strong><br/>${v.type} · ${v.status}`,
+          { direction: "top" }
+        );
+        marker.addTo(map);
+        layersRef.current.push(marker);
       });
     });
-  }, [port, detections, loaded]);
+  }, [incidents, vessels, riskZones, loaded]);
+
+  useEffect(() => {
+    if (activeMapCoords && mapInst.current && loaded) {
+      mapInst.current.flyTo(activeMapCoords, 10, { animate: true, duration: 1.2 });
+    }
+  }, [activeMapCoords, loaded]);
 
   return (
-    <div style={{ position: "relative", height: "100%", width: "100%", display: "flex", flexDirection: "column" }}>
-
-      {/* In-panel location switcher */}
-      {!hideHeader && (
-        <div style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          padding: "10px 14px",
-          background: "var(--glass-bg)",
-          borderBottom: "1px solid var(--glass-border)",
-          flexShrink: 0,
-        }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-            <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-              <circle cx="6" cy="5" r="2" stroke="var(--text-secondary)" strokeWidth="1.2"/>
-              <path d="M6 1C3.79 1 2 2.79 2 5c0 3 4 7 4 7s4-4 4-7c0-2.21-1.79-4-4-4z" stroke="var(--text-secondary)" strokeWidth="1.2" fill="none"/>
-            </svg>
-            <span style={{ fontSize: "11px", color: "var(--text-secondary)", fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.07em" }}>
-              Location
-            </span>
-          </div>
-
-          <div style={{ position: "relative" }}>
-            <select
-              id="map-port-selector"
-              value={port.id}
-              onChange={e => {
-                const p = ports.find(x => x.id === e.target.value);
-                if (p) onPortChange(p);
-              }}
-              style={{
-                background: "var(--glass-bg)",
-                border: "1px solid var(--glass-border)",
-                borderRadius: "6px",
-                color: "var(--text-primary)",
-                fontSize: "12px",
-                padding: "4px 28px 4px 10px",
-                cursor: "pointer",
-                outline: "none",
-                appearance: "none",
-                WebkitAppearance: "none",
-              }}
-            >
-              {ports.map(p => (
-                <option key={p.id} value={p.id} style={{ background: "var(--bg-base)" }}>
-                  {p.name}
-                </option>
-              ))}
-            </select>
-            <svg
-              style={{ position: "absolute", right: "8px", top: "50%", transform: "translateY(-50%)", pointerEvents: "none" }}
-              width="10" height="10" viewBox="0 0 10 10" fill="none"
-            >
-              <path d="M2 3.5L5 6.5L8 3.5" stroke="var(--text-secondary)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-          </div>
+    <div style={{ position: "relative", height: "100%", width: "100%" }}>
+      {!loaded && (
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            zIndex: 10,
+            background: "var(--bg-elevated)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 10,
+          }}
+        >
+          <div
+            className="spinner"
+            style={{
+              width: 16,
+              height: 16,
+              borderRadius: "50%",
+              border: "2px solid var(--glass-border)",
+              borderTopColor: "var(--accent)",
+            }}
+          />
+          <span style={{ fontSize: 13, color: "var(--text-secondary)" }}>
+            Loading Caspian map…
+          </span>
         </div>
       )}
 
-      {/* Map container — fills remaining height */}
-      <div style={{ position: "absolute", inset: (hideHeader ? 0 : "44px 0 0 0"), zIndex: 0, pointerEvents: "auto" }}>
-        {!loaded && (
-          <div style={{
-            position: "absolute", inset: 0, zIndex: 10,
-            background: "var(--bg-base)", display: "flex", alignItems: "center", justifyContent: "center", gap: "10px",
-          }}>
-            <div className="spinner" style={{
-              width: "16px", height: "16px",
-              borderRadius: "50%",
-              border: "2px solid var(--glass-border)",
-              borderTopColor: "var(--text-primary)",
-            }}/>
-            <span style={{ fontSize: "13px", color: "var(--text-secondary)" }}>Loading map…</span>
-          </div>
-        )}
-        <div ref={mapRef} style={{ width: "100%", height: "100%", pointerEvents: "auto" }} />
+      <div ref={mapRef} style={{ width: "100%", height: "100%" }} />
 
-
-
-        {/* Coords overlay */}
-        <div style={{
-          position: "absolute", bottom: "12px", left: "12px", zIndex: 500,
+      {/* Legend */}
+      <div
+        style={{
+          position: "absolute",
+          bottom: 44,
+          left: 12,
+          zIndex: 1000,
           background: "var(--glass-bg)",
           border: "1px solid var(--glass-border)",
-          borderRadius: "6px",
-          padding: "6px 12px",
+          borderRadius: 8,
+          padding: "10px 14px",
           display: "flex",
-          gap: "12px",
-          alignItems: "center",
-          fontSize: "11px",
-          color: "var(--text-secondary)",
-          fontFamily: "monospace",
+          flexDirection: "column",
+          gap: 8,
           pointerEvents: "none",
-          backdropFilter: "blur(4px)"
-        }}>
-          <span>{port.lat.toFixed(4)}°N</span>
-          <span style={{ color: "var(--border-muted)" }}>|</span>
-          <span>{port.lng.toFixed(4)}°E</span>
-          <span style={{ color: "var(--border-muted)" }}>|</span>
-          <span style={{ color: "var(--text-primary)" }}>Sentinel-1 SAR</span>
+          backdropFilter: "blur(8px)",
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <div
+            style={{
+              width: 10,
+              height: 10,
+              borderRadius: "50%",
+              background: "#ef4444",
+              border: "1.5px solid #fff",
+            }}
+          />
+          <span style={{ fontSize: 11, color: "var(--text-secondary)", fontWeight: 500 }}>
+            Oil spill
+          </span>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <div
+            style={{
+              width: 0,
+              height: 0,
+              borderLeft: "5px solid transparent",
+              borderRight: "5px solid transparent",
+              borderBottom: "9px solid #3b82f6",
+              marginLeft: 1,
+            }}
+          />
+          <span style={{ fontSize: 11, color: "var(--text-secondary)", fontWeight: 500 }}>
+            Vessel
+          </span>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <div
+            style={{
+              width: 12,
+              height: 12,
+              borderRadius: "50%",
+              background: "rgba(245,158,11,0.35)",
+              border: "1px solid #f59e0b",
+            }}
+          />
+          <span style={{ fontSize: 11, color: "var(--text-secondary)", fontWeight: 500 }}>
+            Risk zone
+          </span>
         </div>
       </div>
 
-      <style>{`
-        @keyframes markerPulse {
-          0%  { box-shadow: 0 0 0 0 rgba(34,197,94,0.5); }
-          70% { box-shadow: 0 0 0 12px rgba(34,197,94,0); }
-          100%{ box-shadow: 0 0 0 0 rgba(34,197,94,0); }
-        }
-        @keyframes markerRing {
-          0%  { transform: translate(-50%,-50%) scale(1); opacity: 0.5; }
-          100%{ transform: translate(-50%,-50%) scale(2.8); opacity: 0; }
-        }
-      `}</style>
+      {/* Context strip */}
+      <div
+        style={{
+          position: "absolute",
+          top: 12,
+          left: 52,
+          zIndex: 1000,
+          background: "var(--glass-bg)",
+          border: "1px solid var(--glass-border)",
+          borderRadius: 8,
+          padding: "8px 12px",
+          pointerEvents: "none",
+          backdropFilter: "blur(8px)",
+        }}
+      >
+        <div
+          style={{
+            fontSize: 11,
+            fontWeight: 600,
+            letterSpacing: "0.06em",
+            textTransform: "uppercase",
+            color: "var(--text-primary)",
+          }}
+        >
+          Caspian Sea Monitoring
+        </div>
+        <div style={{ fontSize: 11, color: "var(--text-secondary)", marginTop: 2 }}>
+          Sentinel-1 SAR · AI analysis · Human review
+        </div>
+      </div>
+
+      <div
+        style={{
+          position: "absolute",
+          bottom: 12,
+          left: 12,
+          zIndex: 500,
+          background: "var(--glass-bg)",
+          border: "1px solid var(--glass-border)",
+          borderRadius: 6,
+          padding: "5px 10px",
+          fontSize: 11,
+          color: "var(--text-secondary)",
+          fontVariantNumeric: "tabular-nums",
+          pointerEvents: "none",
+          backdropFilter: "blur(6px)",
+        }}
+      >
+        {CASPIAN_OVERVIEW.lat.toFixed(2)}°N · {CASPIAN_OVERVIEW.lng.toFixed(2)}°E · OpenStreetMap
+      </div>
     </div>
   );
 }

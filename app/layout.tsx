@@ -2,22 +2,22 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "TIKVA — Early Detection & Circular Recovery of Port Oil Spills",
+  title: "PEYKGÖZ — Satellite & AI Oil Spill Intelligence",
   description:
-    "TIKVA uses Sentinel-1 SAR satellite imagery and AI to detect port oil spills in real time, then converts recovered sorbent into usable products via pyrolysis.",
+    "PEYKGÖZ detects potential oil spills on the Caspian Sea using satellite SAR imagery, analyzes them with AI, and supports human review, response, and cleanup.",
   keywords: [
     "oil spill detection",
+    "Caspian Sea",
     "satellite AI",
     "Sentinel-1",
-    "circular recovery",
-    "port monitoring",
-    "pyrolysis",
-    "bio-sorbent",
+    "SAR",
+    "maritime intelligence",
+    "PEYKGÖZ",
   ],
   openGraph: {
-    title: "TIKVA Mission Control Dashboard",
+    title: "PEYKGÖZ Dashboard",
     description:
-      "Real-time port oil spill detection and circular recovery tracking.",
+      "Caspian Sea oil spill intelligence — satellite detection, AI analysis, and operator response.",
     type: "website",
   },
 };
@@ -34,7 +34,7 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link
-          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+          href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap"
           rel="stylesheet"
         />
         {/* Leaflet CSS via CDN — avoids Turbopack PostCSS processing panic */}
