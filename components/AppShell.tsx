@@ -11,6 +11,7 @@ import {
   logout,
   syncAuthCookie,
 } from "@/lib/auth";
+import { IncidentStoreProvider } from "@/lib/incident-store";
 
 type Props = {
   active: NavId;
@@ -40,15 +41,17 @@ export default function AppShell({ active, children }: Props) {
     router.push("/");
   };
 
-  if (!mounted || !isAuthenticated()) return null;
-
   return (
-    <div className="dashboard-shell">
-      <Header onLogout={handleLogout} userName={userName} userRole="Admin" />
-      <div className="dashboard-body">
-        <Sidebar active={active} />
-        <main className="dashboard-main">{children}</main>
-      </div>
-    </div>
+    <IncidentStoreProvider>
+      {!mounted || !isAuthenticated() ? null : (
+        <div className="dashboard-shell">
+          <Header onLogout={handleLogout} userName={userName} userRole="Admin" />
+          <div className="dashboard-body">
+            <Sidebar active={active} />
+            <main className="dashboard-main">{children}</main>
+          </div>
+        </div>
+      )}
+    </IncidentStoreProvider>
   );
 }

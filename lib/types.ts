@@ -16,12 +16,15 @@ export type IncidentStatus =
   | "resolved"
   | "rejected";
 
+export type ReviewStatus = "PENDING" | "CONFIRMED" | "REJECTED" | "ESCALATED" | "CLEANING";
+
 export type HumanDecision =
   | "pending"
   | "confirmed_spill"
   | "false_positive"
   | "response_approved"
-  | "monitoring";
+  | "monitoring"
+  | "escalated";
 
 export type SpillSource =
   | "Pipeline leak"
@@ -31,26 +34,37 @@ export type SpillSource =
   | "Illegal dumping"
   | "Unknown / natural seep";
 
+export type DetectionSource = "Sentinel-1 SAR" | "Optical satellite" | "Manual report";
+
 export type Incident = {
   id: string;
   displayId: string;
+  /** Human-readable title, e.g. "Sangachal Coast Oil Spill" */
+  title: string;
   location: string;
   lat: number;
   lng: number;
   timestamp: string;
   areaM2: number;
+  /** 0–1 spill probability from mock AI */
   aiProbability: number;
   risk: RiskLevel;
   status: IncidentStatus;
   portId: string;
   spillSource: SpillSource;
+  /** Imagery / sensor source (mock) */
+  detectionSource: DetectionSource;
+  /** Operator-facing estimated cause */
+  estimatedCause: string;
   aiSummary: string;
   humanDecision: HumanDecision;
   humanDecisionNote?: string;
   humanDecisionBy?: string;
   humanDecisionAt?: string;
+  reviewStatus: ReviewStatus;
   responseStatus: string;
   relatedVesselId?: string;
+  affectedVesselIds: string[];
   weatherSnapshot?: IncidentWeather;
 };
 
@@ -71,28 +85,36 @@ export type IncidentStats = {
   resolved: number;
 };
 
-/** Placeholder models for upcoming pages (not fully wired yet). */
 export type AIAnalysis = {
   id: string;
   incidentId: string;
-  confidence: number;
+  displayId: string;
+  location: string;
+  spillProbability: number;
   estimatedAreaM2: number;
+  confidence: number;
   risk: RiskLevel;
   possibleSource: SpillSource;
+  estimatedCause: string;
   analyzedAt: string;
   summary: string;
+  reviewStatus: ReviewStatus;
+  status: IncidentStatus;
 };
 
 export type ResponseOperation = {
   id: string;
   incidentId: string;
+  displayId: string;
   location: string;
   risk: RiskLevel;
   areaM2: number;
   assignedTeam: string;
-  status: string;
+  status: IncidentStatus;
+  reviewStatus: ReviewStatus;
   startTime: string;
   estimatedCompletion: string;
+  responseStatus: string;
 };
 
 export type ReportSummary = {
@@ -101,5 +123,23 @@ export type ReportSummary = {
   totalCleanedAreaM2: number;
   averageAiConfidence: number;
   highRiskCount: number;
+  resolvedCount: number;
+  underReviewCount: number;
   avgResponseTimeMin: number;
+};
+
+export type OpsVessel = {
+  id: string;
+  name: string;
+  mmsi: string;
+  imo?: string;
+  type: string;
+  lat: number;
+  lng: number;
+  speedKnots: number;
+  heading: number;
+  status: "In port" | "Approaching" | "Transiting" | "Suspicious" | "Response";
+  portId: string;
+  relatedIncidentId?: string;
+  lastUpdate: string;
 };

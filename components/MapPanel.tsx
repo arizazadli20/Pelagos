@@ -16,6 +16,7 @@ type Props = {
   riskZones: RiskZone[];
   activeMapCoords?: [number, number] | null;
   mapTheme?: "dark" | "light";
+  onIncidentSelect?: (incident: Incident) => void;
 };
 
 function riskColor(risk: Incident["risk"]) {
@@ -126,12 +127,15 @@ export default function MapPanel({
   riskZones,
   activeMapCoords,
   mapTheme = "dark",
+  onIncidentSelect,
 }: Props) {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInst = useRef<any>(null);
   const layersRef = useRef<any[]>([]);
   const tileLayerRef = useRef<any>(null);
   const [loaded, setLoaded] = useState(false);
+  const onSelectRef = useRef(onIncidentSelect);
+  onSelectRef.current = onIncidentSelect;
 
   useEffect(() => {
     if (!mapRef.current || mapInst.current) return;
@@ -215,9 +219,20 @@ export default function MapPanel({
           icon: createSpillIcon(L, active && inc.status !== "resolved" && inc.status !== "rejected"),
           zIndexOffset: 600,
         });
-        marker.bindPopup(
-          L.popup({ maxWidth: 300, minWidth: 250 }).setContent(makeIncidentPopup(inc))
-        );
+        const popup = L.popup({ maxWidth: 300, minWidth: 250 }).setContent(makeIncidentPopup(inc));
+        marker.bindPopup(popup);
+        marker.on("popupopen", () => {
+          const btn = document.querySelector(".popup-view-btn") as HTMLButtonElement | null;
+          if (btn) {
+            btn.onclick = (e) => {
+              e.preventDefault();
+              onSelectRef.current?.(inc);
+            };
+          }
+        });
+        marker.on("click", () => {
+          onSelectRef.current?.(inc);
+        });
         marker.addTo(map);
         layersRef.current.push(marker);
       });

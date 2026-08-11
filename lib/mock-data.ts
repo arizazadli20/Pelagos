@@ -20,9 +20,21 @@ export type {
   HumanDecision,
   SpillSource,
   RiskLevel,
+  ReviewStatus,
   AIAnalysis,
   ResponseOperation,
   ReportSummary,
+  OpsVessel,
+  DetectionSource,
+} from "@/lib/types";
+
+import type {
+  AIAnalysis,
+  HumanDecision,
+  OpsVessel,
+  ReportSummary,
+  ResponseOperation,
+  ReviewStatus,
 } from "@/lib/types";
 
 export type Port = {
@@ -182,6 +194,7 @@ export const HUMAN_DECISION_LABEL: Record<string, string> = {
   false_positive: "False positive / rejected",
   response_approved: "Response approved",
   monitoring: "Continue monitoring",
+  escalated: "Escalated to senior duty officer",
 };
 
 export function formatAreaM2(m2: number): string {
@@ -247,6 +260,183 @@ export function getIncidentStats(incidents: Incident[]): IncidentStats {
   };
 }
 
+function deriveReviewStatus(i: {
+  status: IncidentStatus;
+  humanDecision: HumanDecision;
+}): ReviewStatus {
+  if (i.status === "rejected" || i.humanDecision === "false_positive") return "REJECTED";
+  if (i.status === "cleaning") return "CLEANING";
+  if (i.humanDecision === "escalated") return "ESCALATED";
+  if (
+    i.humanDecision === "confirmed_spill" ||
+    i.humanDecision === "response_approved" ||
+    i.status === "resolved"
+  ) {
+    return "CONFIRMED";
+  }
+  return "PENDING";
+}
+
+/** Hydrate legacy mock rows into the full Incident model. */
+export function hydrateIncident(raw: Record<string, unknown>): Incident {
+  const status = raw.status as IncidentStatus;
+  const humanDecision = raw.humanDecision as HumanDecision;
+  const location = String(raw.location ?? "");
+  const relatedVesselId = raw.relatedVesselId as string | undefined;
+  const spillSource = String(raw.spillSource ?? "Unknown / natural seep");
+
+  return {
+    ...(raw as unknown as Incident),
+    title: (raw.title as string) || `${location} Oil Spill`,
+    detectionSource: (raw.detectionSource as Incident["detectionSource"]) || "Sentinel-1 SAR",
+    estimatedCause:
+      (raw.estimatedCause as string) ||
+      `Possible ${spillSource.toLowerCase()} — requires specialist confirmation`,
+    reviewStatus:
+      (raw.reviewStatus as ReviewStatus) ||
+      deriveReviewStatus({ status, humanDecision }),
+    affectedVesselIds:
+      (raw.affectedVesselIds as string[]) ||
+      (relatedVesselId ? [relatedVesselId] : []),
+  };
+}
+
+export function getReportSummary(incidents: Incident[]): ReportSummary {
+  const kpis = getDashboardKpis(incidents);
+  const stats = getIncidentStats(incidents);
+  return {
+    totalIncidents: stats.total,
+    totalDetectedAreaM2: kpis.detectedAreaM2,
+    totalCleanedAreaM2: kpis.cleanedAreaM2,
+    averageAiConfidence: Math.round(kpis.aiConfidence * 100),
+    highRiskCount: stats.highRisk,
+    resolvedCount: stats.resolved,
+    underReviewCount: stats.underReview,
+    avgResponseTimeMin: mockData.kpis.avgAlertLatencyMin,
+  };
+}
+
+export function buildAiAnalyses(incidents: Incident[]): AIAnalysis[] {
+  return [...incidents]
+    .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+    .map((inc) => ({
+      id: `ai-${inc.id}`,
+      incidentId: inc.id,
+      displayId: inc.displayId,
+      location: inc.location,
+      spillProbability: Math.round(inc.aiProbability * 100),
+      estimatedAreaM2: inc.areaM2,
+      confidence: Math.max(55, Math.round(inc.aiProbability * 100) - 8),
+      risk: inc.risk,
+      possibleSource: inc.spillSource,
+      estimatedCause: inc.estimatedCause,
+      analyzedAt: new Date(new Date(inc.timestamp).getTime() + 7 * 60000).toISOString(),
+      summary: inc.aiSummary,
+      reviewStatus: inc.reviewStatus,
+      status: inc.status,
+    }));
+}
+
+export function buildResponseOps(incidents: Incident[]): ResponseOperation[] {
+  const teams = ["Alpha Response", "Bravo Team", "Charlie Team", "Unassigned"];
+  return [...incidents]
+    .filter((i) => i.status !== "rejected")
+    .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+    .map((inc, idx) => ({
+      id: `resp-${inc.id}`,
+      incidentId: inc.id,
+      displayId: inc.displayId,
+      location: inc.location,
+      risk: inc.risk,
+      areaM2: inc.areaM2,
+      assignedTeam:
+        inc.status === "detected" || inc.status === "under_review"
+          ? "Unassigned"
+          : teams[idx % (teams.length - 1)],
+      status: inc.status,
+      reviewStatus: inc.reviewStatus,
+      startTime: inc.humanDecisionAt || inc.timestamp,
+      estimatedCompletion: new Date(
+        new Date(inc.timestamp).getTime() + 8 * 3600000
+      ).toISOString(),
+      responseStatus: inc.responseStatus,
+    }));
+}
+
+const VESSEL_MMSI: Record<string, string> = {
+  "v-001": "423001111",
+  "v-002": "423001222",
+  "v-003": "423001333",
+  "v-004": "423001444",
+  "v-005": "423001555",
+  "v-006": "423002111",
+  "v-007": "423002222",
+  "v-008": "423002333",
+  "v-009": "423003111",
+  "v-010": "423003222",
+  "v-011": "423009999",
+};
+
+function haversineKm(lat1: number, lng1: number, lat2: number, lng2: number) {
+  const R = 6371;
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLng = ((lng2 - lng1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLng / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(a));
+}
+
+export function getEnrichedVessels(incidents: Incident[] = mockData.incidents): OpsVessel[] {
+  const active = incidents.filter((i) => i.status !== "resolved" && i.status !== "rejected");
+
+  return mockData.vessels.map((v) => {
+    const linked = incidents.find((i) => i.relatedVesselId === v.id || i.affectedVesselIds.includes(v.id));
+    let nearest = linked;
+    let nearestDist = linked
+      ? haversineKm(v.lat, v.lng, linked.lat, linked.lng)
+      : Number.POSITIVE_INFINITY;
+
+    if (!nearest) {
+      for (const inc of active) {
+        const d = haversineKm(v.lat, v.lng, inc.lat, inc.lng);
+        if (d < nearestDist) {
+          nearestDist = d;
+          nearest = inc;
+        }
+      }
+    }
+
+    const suspicious =
+      nearest && nearestDist < 3 && (nearest.risk === "HIGH" || nearest.status === "under_review");
+
+    return {
+      id: v.id,
+      name: v.name,
+      mmsi: VESSEL_MMSI[v.id] || `42300${v.id.replace(/\D/g, "").padStart(4, "0")}`,
+      type: v.type,
+      lat: v.lat,
+      lng: v.lng,
+      speedKnots: v.speedKnots,
+      heading: v.heading,
+      status: v.type === "Response"
+        ? "Response"
+        : suspicious
+          ? "Suspicious"
+          : v.status,
+      portId: v.portId,
+      relatedIncidentId: nearest && nearestDist < 25 ? nearest.id : undefined,
+      lastUpdate: "2026-08-10T07:00:00Z",
+    };
+  });
+}
+
+export function distanceToIncidentKm(vessel: OpsVessel, incident: Incident) {
+  return haversineKm(vessel.lat, vessel.lng, incident.lat, incident.lng);
+}
+
 export const mockData = {
   ports: [
     { id: "baku", name: "Baku Port", lat: 40.37, lng: 49.85 },
@@ -255,7 +445,7 @@ export const mockData = {
     { id: "sangachal", name: "Sangachal", lat: 40.19, lng: 49.48 },
   ] as Port[],
 
-  incidents: [
+  incidents: ([
     {
       id: "inc-024",
       displayId: "#024",
@@ -510,7 +700,7 @@ export const mockData = {
         temperatureC: 28,
       },
     },
-  ] as Incident[],
+  ] as any[]).map(hydrateIncident),
 
   riskZones: [
     {

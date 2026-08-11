@@ -8,6 +8,7 @@ import {
   Brain,
   Siren,
   FileBarChart,
+  UserCircle,
 } from "lucide-react";
 import { ENABLED_NAV, NAV_ROUTES, type NavId } from "@/lib/nav";
 
@@ -24,6 +25,7 @@ const NAV: NavItem[] = [
   { id: "ai", label: "AI Analysis", icon: <Brain size={18} strokeWidth={1.75} /> },
   { id: "response", label: "Response", icon: <Siren size={18} strokeWidth={1.75} /> },
   { id: "reports", label: "Reports", icon: <FileBarChart size={18} strokeWidth={1.75} /> },
+  { id: "account", label: "Account", icon: <UserCircle size={18} strokeWidth={1.75} /> },
 ];
 
 type Props = {
@@ -71,7 +73,7 @@ export default function Sidebar({ active = "dashboard" }: Props) {
           <button
             key={item.id}
             type="button"
-            title={enabled ? item.label : `${item.label} (coming next)`}
+            title={item.label}
             aria-current={isActive ? "page" : undefined}
             disabled={!enabled}
             onClick={() => {
@@ -87,13 +89,8 @@ export default function Sidebar({ active = "dashboard" }: Props) {
               border: "1px solid",
               borderColor: isActive ? "rgba(56, 189, 248, 0.25)" : "transparent",
               background: isActive ? "var(--accent-soft)" : "transparent",
-              color: isActive
-                ? "var(--accent)"
-                : enabled
-                  ? "var(--text-secondary)"
-                  : "var(--text-tertiary)",
-              cursor: enabled ? (isActive ? "default" : "pointer") : "not-allowed",
-              opacity: enabled ? 1 : 0.55,
+              color: isActive ? "var(--accent)" : "var(--text-secondary)",
+              cursor: isActive ? "default" : "pointer",
               fontFamily: "inherit",
               fontSize: "13px",
               fontWeight: isActive ? 600 : 500,
@@ -101,13 +98,13 @@ export default function Sidebar({ active = "dashboard" }: Props) {
               transition: "background 0.15s ease, color 0.15s ease, border-color 0.15s ease",
             }}
             onMouseEnter={(e) => {
-              if (enabled && !isActive) {
+              if (!isActive) {
                 e.currentTarget.style.background = "rgba(255,255,255,0.03)";
                 e.currentTarget.style.color = "var(--text-primary)";
               }
             }}
             onMouseLeave={(e) => {
-              if (enabled && !isActive) {
+              if (!isActive) {
                 e.currentTarget.style.background = "transparent";
                 e.currentTarget.style.color = "var(--text-secondary)";
               }
@@ -145,6 +142,9 @@ export default function Sidebar({ active = "dashboard" }: Props) {
         </div>
         <div style={{ fontSize: "12px", color: "var(--text-secondary)", lineHeight: 1.45 }}>
           Caspian Sea · Azerbaijan coastal corridor
+        </div>
+        <div style={{ fontSize: "10px", color: "var(--text-tertiary)", marginTop: 8 }}>
+          Demo data · not live feeds
         </div>
       </div>
 

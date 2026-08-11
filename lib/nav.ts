@@ -4,7 +4,8 @@ export type NavId =
   | "vessels"
   | "ai"
   | "response"
-  | "reports";
+  | "reports"
+  | "account";
 
 export const NAV_ROUTES: Record<NavId, string> = {
   dashboard: "/dashboard",
@@ -13,7 +14,16 @@ export const NAV_ROUTES: Record<NavId, string> = {
   ai: "/ai-analysis",
   response: "/response",
   reports: "/reports",
+  account: "/account",
 };
 
-/** Routes implemented in the current phase. */
-export const ENABLED_NAV: NavId[] = ["dashboard", "incidents"];
+/** All operational routes are live in Phase 3. */
+export const ENABLED_NAV: NavId[] = [
+  "dashboard",
+  "incidents",
+  "vessels",
+  "ai",
+  "response",
+  "reports",
+  "account",
+];

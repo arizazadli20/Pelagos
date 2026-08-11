@@ -1,31 +1,53 @@
 "use client";
 
 import { useState } from "react";
-import { mockData, getDashboardKpis } from "@/lib/mock-data";
 import AppShell from "@/components/AppShell";
 import MapPanel from "@/components/MapPanel";
 import KpiCards from "@/components/KpiCards";
 import RecentIncidents from "@/components/RecentIncidents";
 import ActivityFeed from "@/components/ActivityFeed";
+import IncidentDetailsPanel from "@/components/incidents/IncidentDetailsPanel";
+import { useIncidentStore } from "@/lib/incident-store";
+import type { Incident } from "@/lib/types";
 
 export default function DashboardPage() {
-  const [activeMapCoords, setActiveMapCoords] = useState<[number, number] | null>(null);
-
-  const incidents = mockData.incidents;
-  const vessels = mockData.vessels;
-  const riskZones = mockData.riskZones;
-  const activity = mockData.activityLog;
-  const kpis = getDashboardKpis(incidents);
-
   return (
     <AppShell active="dashboard">
+      <DashboardContent />
+    </AppShell>
+  );
+}
+
+function DashboardContent() {
+  const { incidents, vessels, riskZones, activity, kpis } = useIncidentStore();
+  const [activeMapCoords, setActiveMapCoords] = useState<[number, number] | null>(null);
+  const [selected, setSelected] = useState<Incident | null>(null);
+
+  const mapVessels = vessels.map((v) => ({
+    id: v.id,
+    name: v.name,
+    portId: v.portId,
+    lat: v.lat,
+    lng: v.lng,
+    distanceKm: 0,
+    speedKnots: v.speedKnots,
+    heading: v.heading,
+    status: (v.status === "Suspicious" || v.status === "Response"
+      ? "Transiting"
+      : v.status) as "In port" | "Approaching" | "Transiting",
+    type: v.type,
+  }));
+
+  return (
+    <>
       <div className="dashboard-scroll">
         <section className="dashboard-map-wrap" aria-label="Caspian Sea incident map">
           <MapPanel
             incidents={incidents}
-            vessels={vessels}
+            vessels={mapVessels}
             riskZones={riskZones}
             activeMapCoords={activeMapCoords}
+            onIncidentSelect={setSelected}
           />
         </section>
 
@@ -41,6 +63,8 @@ export default function DashboardPage() {
           />
         </section>
       </div>
-    </AppShell>
+
+      <IncidentDetailsPanel incident={selected} onClose={() => setSelected(null)} />
+    </>
   );
 }
