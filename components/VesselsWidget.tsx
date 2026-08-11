@@ -1,7 +1,8 @@
 "use client";
 
-import { Vessel, Port } from "@/lib/mock-data";
-import { Ship, Anchor, Navigation, Radio } from "lucide-react";
+import { useState } from "react";
+import { Vessel, Port, mockData } from "@/lib/mock-data";
+import { Ship, Anchor, Navigation, Radio, Search, Filter, AlertTriangle } from "lucide-react";
 
 type Props = {
   vessels: Vessel[];
@@ -27,11 +28,69 @@ function getVesselIcon(type: string) {
   return <Navigation size={14} />;
 }
 
+function haversine(lat1: number, lon1: number, lat2: number, lon2: number) {
+  const R = 6371; // Earth radius in km
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+            Math.sin(dLon/2) * Math.sin(dLon/2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  return R * c;
+}
+
 export default function VesselsWidget({ vessels, port }: Props) {
-  const portVessels = vessels.filter(v => v.portId === port.id);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterStatus, setFilterStatus] = useState<string>("all");
+
+  const portVessels = vessels.filter(v => v.portId === port.id).filter(v => {
+    const matchesSearch = v.name.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = filterStatus === "all" || v.status === filterStatus;
+    return matchesSearch && matchesStatus;
+  });
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
+      {/* Search & Filter Bar */}
+      <div style={{
+        display: "flex", gap: "8px", padding: "0 16px 12px 16px", borderBottom: "1px solid var(--glass-border)"
+      }}>
+        <div style={{
+          position: "relative", flex: 1, display: "flex", alignItems: "center"
+        }}>
+          <Search size={14} style={{ position: "absolute", left: "8px", color: "var(--text-secondary)" }} />
+          <input
+            type="text"
+            placeholder="Search vessels..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            style={{
+              width: "100%", background: "var(--glass-bg)", border: "1px solid var(--glass-border)",
+              borderRadius: "6px", color: "var(--text-primary)", fontSize: "12px",
+              padding: "4px 8px 4px 28px", outline: "none"
+            }}
+          />
+        </div>
+        <div style={{ position: "relative", display: "flex", alignItems: "center" }}>
+          <Filter size={14} style={{ position: "absolute", left: "8px", color: "var(--text-secondary)", pointerEvents: "none" }} />
+          <select
+            value={filterStatus}
+            onChange={(e) => setFilterStatus(e.target.value)}
+            style={{
+              background: "var(--glass-bg)", border: "1px solid var(--glass-border)",
+              borderRadius: "6px", color: "var(--text-primary)", fontSize: "12px",
+              padding: "4px 24px 4px 28px", outline: "none", cursor: "pointer",
+              appearance: "none", WebkitAppearance: "none"
+            }}
+          >
+            <option value="all">All Status</option>
+            <option value="In port">In port</option>
+            <option value="Approaching">Approaching</option>
+            <option value="Transiting">Transiting</option>
+          </select>
+        </div>
+      </div>
+
       {/* Header row */}
       <div style={{
         display: "grid",
@@ -49,13 +108,15 @@ export default function VesselsWidget({ vessels, port }: Props) {
 
       {portVessels.length === 0 && (
         <div style={{ padding: "24px 14px", fontSize: "12px", color: "var(--text-tertiary)", textAlign: "center" }}>
-          No vessels tracked for {port.name}
+          No vessels found.
         </div>
       )}
 
       <div style={{ flex: 1, overflow: "auto" }}>
         {portVessels.map((v, i) => {
           const st = STATUS_STYLES[v.status];
+          const isNearSpill = mockData.detections.some(d => d.portId === port.id && haversine(v.lat, v.lng, d.lat, d.lng) <= 2.5);
+          
           return (
             <div
               key={v.id}
@@ -73,14 +134,15 @@ export default function VesselsWidget({ vessels, port }: Props) {
               <div style={{ display: "flex", alignItems: "center", gap: "10px", minWidth: 0 }}>
                 <div style={{
                   width: "28px", height: "28px",
-                  background: "var(--glass-bg)",
-                  border: "1px solid var(--glass-border)",
+                  background: isNearSpill ? "rgba(220, 38, 38, 0.15)" : "var(--glass-bg)",
+                  border: isNearSpill ? "1px solid var(--color-high)" : "1px solid var(--glass-border)",
                   borderRadius: "6px",
                   display: "flex", alignItems: "center", justifyContent: "center",
-                  color: "var(--accent-teal)",
+                  color: isNearSpill ? "var(--color-high)" : "var(--accent-teal)",
                   flexShrink: 0,
-                }}>
-                  {getVesselIcon(v.type)}
+                  boxShadow: isNearSpill ? "0 0 10px rgba(220, 38, 38, 0.4)" : "none",
+                }} title={isNearSpill ? "Proximity Warning" : ""}>
+                  {isNearSpill ? <AlertTriangle size={14} /> : getVesselIcon(v.type)}
                 </div>
                 <div style={{ minWidth: 0, flex: 1 }}>
                   <div style={{

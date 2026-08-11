@@ -2,10 +2,10 @@
 
 import { useState, useCallback, useEffect, useRef, ReactNode } from "react";
 import { ResponsiveGridLayout, LayoutItem, ResponsiveLayouts, verticalCompactor } from "react-grid-layout";
-import { RotateCcw, Activity, ShieldAlert, Navigation, RefreshCw, History, BarChart2, Edit2, Check, CloudSun } from "lucide-react";
+import { RotateCcw, Activity, ShieldAlert, Navigation, RefreshCw, History, BarChart2, Edit2, Check, CloudSun, Package, TrendingUp } from "lucide-react";
 import WidgetCard from "./WidgetCard";
 
-const STORAGE_KEY  = "peykgoz-dashboard-layout-v2";
+const STORAGE_KEY  = "peykgoz-dashboard-layout-v3";
 const DRAG_HANDLE  = "widget-header";
 
 /** Default 12-column layout */
@@ -16,7 +16,9 @@ const DEFAULT_LAYOUT: LayoutItem[] = [
   { i: "activity",   x: 0,  y: 5,  w: 4,  h: 6,  minW: 3, maxW: 12, minH: 5 },
   { i: "conversion", x: 4,  y: 5,  w: 8,  h: 7,  minW: 4, maxW: 12, minH: 6 },
   { i: "history",    x: 0,  y: 12, w: 12, h: 6,  minW: 6, maxW: 12, minH: 5 },
-  { i: "weather",    x: 0,  y: 18, w: 4,  h: 5,  minW: 3, maxW: 12, minH: 4 },
+  { i: "weather",    x: 0,  y: 18, w: 4,  h: 5,  minW: 4, maxW: 12, minH: 5 },
+  { i: "resources",  x: 4,  y: 18, w: 4,  h: 5,  minW: 4, maxW: 12, minH: 5 },
+  { i: "trends",     x: 8,  y: 18, w: 4,  h: 5,  minW: 4, maxW: 12, minH: 5 },
 ];
 
 const DEFAULT_LAYOUTS: ResponsiveLayouts = {
@@ -35,6 +37,8 @@ const WIDGET_TITLES: Record<string, string> = {
   conversion: "Circular Recovery",
   history:    "Detection History",
   weather:    "Sea & Weather",
+  resources:  "Resource Status",
+  trends:     "Analytics & Trends",
 };
 
 const WIDGET_ICONS: Record<string, ReactNode> = {
@@ -45,23 +49,27 @@ const WIDGET_ICONS: Record<string, ReactNode> = {
   conversion: <RefreshCw size={16} strokeWidth={2.5} />,
   history:    <History size={16} strokeWidth={2.5} />,
   weather:    <CloudSun size={16} strokeWidth={2.5} />,
+  resources:  <Package size={16} strokeWidth={2.5} />,
+  trends:     <TrendingUp size={16} strokeWidth={2.5} />,
 };
 
 export type WidgetDef = {
   id: string;
   content: ReactNode;
+  updatedAt?: string;
 };
 
 type Props = {
   widgets: WidgetDef[];
+  editMode?: boolean;
+  resetSignal?: number;
 };
 
-export default function WidgetGrid({ widgets }: Props) {
+export default function WidgetGrid({ widgets, editMode = false, resetSignal = 0 }: Props) {
   const [layouts, setLayouts] = useState<ResponsiveLayouts>(DEFAULT_LAYOUTS);
   const [width, setWidth]     = useState(800);
   const [isMobile, setIsMobile] = useState(false);
   const [mounted, setMounted]   = useState(false);
-  const [editMode, setEditMode] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Hydrate from localStorage on client mount only
@@ -96,6 +104,12 @@ export default function WidgetGrid({ widgets }: Props) {
     try { localStorage.removeItem(STORAGE_KEY); } catch { /* ignore */ }
   }, []);
 
+  useEffect(() => {
+    if (resetSignal > 0) {
+      handleReset();
+    }
+  }, [resetSignal, handleReset]);
+
   const widgetMap = Object.fromEntries(widgets.map(w => [w.id, w]));
 
   // Skip SSR — avoid layout/width hydration mismatch
@@ -103,23 +117,6 @@ export default function WidgetGrid({ widgets }: Props) {
 
   return (
     <div ref={containerRef} style={{ position: "relative" }} data-edit-mode={editMode ? "true" : "false"}>
-      {/* Toolbar */}
-      <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: "8px", padding: "12px 16px 0", zIndex: 20, position: "relative" }}>
-        {editMode && (
-          <button className="reset-layout-btn" onClick={handleReset} title="Reset to default layout">
-            <RotateCcw size={14} />
-            Reset
-          </button>
-        )}
-        <button
-          className={`reset-layout-btn${editMode ? " edit-mode-active" : ""}`}
-          onClick={() => setEditMode(v => !v)}
-          title={editMode ? "Save layout" : "Edit layout"}
-        >
-          {editMode ? <><Check size={14} /> Done</> : <><Edit2 size={14} /> Edit Layout</>}
-        </button>
-      </div>
-
       <ResponsiveGridLayout
         layouts={layouts}
         onLayoutChange={handleLayoutChange}
@@ -145,6 +142,7 @@ export default function WidgetGrid({ widgets }: Props) {
                 icon={WIDGET_ICONS[i]}
                 dragHandleClass={DRAG_HANDLE}
                 editMode={editMode}
+                updatedAt={widget.updatedAt}
               >
                 {widget.content}
               </WidgetCard>

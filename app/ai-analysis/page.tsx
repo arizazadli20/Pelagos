@@ -1,0 +1,165 @@
+"use client";
+
+import { useState } from "react";
+import AppShell from "@/components/AppShell";
+import PageHeader from "@/components/ui/PageHeader";
+import StatCard from "@/components/ui/StatCard";
+import RiskBadge from "@/components/ui/RiskBadge";
+import StatusBadge from "@/components/ui/StatusBadge";
+import IncidentDetailsPanel from "@/components/incidents/IncidentDetailsPanel";
+import { useIncidentStore } from "@/lib/incident-store";
+import { formatAreaM2, formatDateTimeAZT } from "@/lib/mock-data";
+import type { Incident } from "@/lib/types";
+import { Brain, Percent, Maximize2, Clock } from "lucide-react";
+
+export default function AiAnalysisPage() {
+  return (
+    <AppShell active="ai">
+      <AiAnalysisContent />
+    </AppShell>
+  );
+}
+
+function AiAnalysisContent() {
+  const { aiAnalyses, getIncidentById } = useIncidentStore();
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const selected = selectedId ? getIncidentById(selectedId) || null : null;
+
+  const avgProb =
+    aiAnalyses.length === 0
+      ? 0
+      : Math.round(
+          aiAnalyses.reduce((s, a) => s + a.spillProbability, 0) / aiAnalyses.length
+        );
+  const pendingReview = aiAnalyses.filter((a) => a.reviewStatus === "PENDING").length;
+
+  return (
+    <>
+      <div className="dashboard-scroll">
+        <PageHeader
+          title="AI Analysis"
+          subtitle="Mock satellite spill analysis packages prepared for human operators. No live AI model is connected."
+        />
+
+        <div
+          style={{
+            padding: "12px 14px",
+            borderRadius: 10,
+            border: "1px solid rgba(245,158,11,0.3)",
+            background: "rgba(245,158,11,0.08)",
+            fontSize: 13,
+            color: "var(--text-secondary)",
+            lineHeight: 1.5,
+          }}
+        >
+          <strong style={{ color: "#fbbf24" }}>Human review required.</strong>{" "}
+          AI analysis supports the operator&apos;s decision. It does not make the final operational
+          decision.
+        </div>
+
+        <section
+          style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))", gap: 12 }}
+          className="ops-stat-grid"
+        >
+          <StatCard label="Analyses" value={aiAnalyses.length} icon={<Brain size={15} />} />
+          <StatCard label="Avg Spill Probability" value={`${avgProb}%`} accent="var(--accent)" icon={<Percent size={15} />} />
+          <StatCard
+            label="Pending Human Review"
+            value={pendingReview}
+            accent="var(--color-med)"
+            icon={<Clock size={15} />}
+          />
+          <StatCard
+            label="Largest Estimated Area"
+            value={formatAreaM2(Math.max(...aiAnalyses.map((a) => a.estimatedAreaM2), 0))}
+            icon={<Maximize2 size={15} />}
+          />
+        </section>
+
+        <div className="panel">
+          <div className="panel-header">
+            <span className="panel-title">AI analysis queue</span>
+            <span style={{ fontSize: 11, color: "var(--text-tertiary)" }}>Mock responses</span>
+          </div>
+          <div className="panel-body" style={{ padding: 16, display: "grid", gap: 12 }}>
+            {aiAnalyses.length === 0 && (
+              <div style={{ textAlign: "center", color: "var(--text-secondary)", padding: 24 }}>
+                No AI analyses available.
+              </div>
+            )}
+
+            {aiAnalyses.map((a) => (
+              <article
+                key={a.id}
+                className="row-hover"
+                style={{
+                  border: "1px solid var(--glass-border)",
+                  borderRadius: 10,
+                  padding: 16,
+                  background: "rgba(0,0,0,0.15)",
+                  cursor: "pointer",
+                }}
+                onClick={() => setSelectedId(a.incidentId)}
+              >
+                <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+                  <div>
+                    <div style={{ fontWeight: 650, color: "var(--accent)" }}>{a.displayId}</div>
+                    <div style={{ fontSize: 13, marginTop: 2 }}>{a.location}</div>
+                  </div>
+                  <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                    <RiskBadge risk={a.risk} />
+                    <StatusBadge status={a.status} />
+                  </div>
+                </div>
+
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
+                    gap: 12,
+                    marginTop: 14,
+                  }}
+                  className="ai-metrics"
+                >
+                  <Metric label="Spill probability" value={`${a.spillProbability}%`} />
+                  <Metric label="Estimated area" value={formatAreaM2(a.estimatedAreaM2)} />
+                  <Metric label="AI confidence" value={`${a.confidence}%`} />
+                  <Metric label="Analyzed at" value={formatDateTimeAZT(a.analyzedAt)} />
+                </div>
+
+                <p style={{ margin: "12px 0 0", fontSize: 13, color: "var(--text-secondary)", lineHeight: 1.5 }}>
+                  {a.summary}
+                </p>
+                <div style={{ marginTop: 10, fontSize: 12, color: "var(--text-tertiary)" }}>
+                  Possible source: {a.possibleSource} · {a.estimatedCause}
+                </div>
+              </article>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <IncidentDetailsPanel
+        incident={selected as Incident | null}
+        onClose={() => setSelectedId(null)}
+      />
+
+      <style>{`
+        @media (max-width: 1100px) {
+          .ops-stat-grid, .ai-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+        }
+      `}</style>
+    </>
+  );
+}
+
+function Metric({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <div style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--text-tertiary)" }}>
+        {label}
+      </div>
+      <div style={{ marginTop: 4, fontWeight: 600, fontSize: 14 }}>{value}</div>
+    </div>
+  );
+}
