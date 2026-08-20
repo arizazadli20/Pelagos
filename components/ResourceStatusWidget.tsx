@@ -36,7 +36,7 @@ export default function ResourceStatusWidget({ resources }: Props) {
             {boomAvailable}m / {resources.boomTotalMeters}m
           </span>
         </div>
-        <div style={{ height: "6px", background: "rgba(255,255,255,0.05)", borderRadius: "3px", overflow: "hidden" }}>
+        <div style={{ height: "6px", background: "rgba(43,45,66,0.08)", borderRadius: "3px", overflow: "hidden" }}>
           <div style={{ 
             height: "100%", 
             width: `${(boomAvailable / resources.boomTotalMeters) * 100}%`, 
@@ -55,7 +55,7 @@ export default function ResourceStatusWidget({ resources }: Props) {
             {sorbentAvailable}kg / {resources.sorbentTotalKg}kg
           </span>
         </div>
-        <div style={{ height: "6px", background: "rgba(255,255,255,0.05)", borderRadius: "3px", overflow: "hidden" }}>
+        <div style={{ height: "6px", background: "rgba(43,45,66,0.08)", borderRadius: "3px", overflow: "hidden" }}>
           <div style={{ 
             height: "100%", 
             width: `${(sorbentAvailable / resources.sorbentTotalKg) * 100}%`, 

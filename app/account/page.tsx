@@ -25,7 +25,7 @@ export default function AccountPage() {
       <div className="dashboard-scroll">
         <PageHeader
           title="Account"
-          subtitle="Operator profile for the PEYKGÖZ operational workspace."
+          subtitle="Operator profile for the Pelagos operational workspace."
         />
 
         <div style={{ display: "grid", gridTemplateColumns: "1.2fr 1fr", gap: 16 }} className="account-grid">
@@ -59,7 +59,7 @@ export default function AccountPage() {
 
               <div style={{ display: "grid", gap: 12, fontSize: 13 }}>
                 <InfoRow label="Role" value="Admin / Duty Operator" />
-                <InfoRow label="Organisation" value="PEYKGÖZ Operations (demo)" />
+                <InfoRow label="Organisation" value="Pelagos Operations (demo)" />
                 <InfoRow label="Monitoring theatre" value="Caspian Sea · Azerbaijan" />
                 <InfoRow label="Auth mode" value="Local demo session" />
               </div>
@@ -132,7 +132,7 @@ function InfoRow({ label, value }: { label: string; value: string }) {
         justifyContent: "space-between",
         gap: 12,
         paddingBottom: 10,
-        borderBottom: "1px solid rgba(42,63,85,0.35)",
+        borderBottom: "1px solid var(--border-muted)",
       }}
     >
       <span style={{ color: "var(--text-secondary)" }}>{label}</span>

@@ -167,7 +167,7 @@ function VesselsContent() {
                     padding: "12px 16px",
                     alignItems: "center",
                     borderBottom:
-                      i < filtered.length - 1 ? "1px solid rgba(42,63,85,0.35)" : "none",
+                      i < filtered.length - 1 ? "1px solid var(--border-muted)" : "none",
                     borderRadius: 0,
                     minWidth: 960,
                     cursor: "pointer",

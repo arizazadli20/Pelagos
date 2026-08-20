@@ -18,7 +18,7 @@ export default function ConversionTracker({ entries }: Props) {
 
   const data = [
     { name: "Converted", value: pct, color: "var(--accent-teal)" },
-    { name: "Pending", value: 100 - pct, color: "rgba(255, 255, 255, 0.05)" }
+    { name: "Pending", value: 100 - pct, color: "rgba(43, 45, 66, 0.08)" }
   ];
 
   return (
