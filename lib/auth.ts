@@ -1,5 +1,5 @@
 // ============================================================
-// PEYKGÖZ Authentication
+// Pelagos Authentication
 // ============================================================
 // Mock client-side auth for the current phase.
 // Replace `login` / `register` / `logout` bodies with real
@@ -7,9 +7,9 @@
 // Keep the exported function signatures stable for UI pages.
 // ============================================================
 
-export const AUTH_STORAGE_KEY = "peykgoz-auth";
-export const USER_STORAGE_KEY = "peykgoz-user";
-export const AUTH_COOKIE_NAME = "peykgoz-auth";
+export const AUTH_STORAGE_KEY = "pelagos-auth";
+export const USER_STORAGE_KEY = "pelagos-user";
+export const AUTH_COOKIE_NAME = "pelagos-auth";
 
 export type AuthUser = {
   name: string;
@@ -63,7 +63,7 @@ export function getCurrentUser(): AuthUser | null {
   return (
     readStoredUser() ?? {
       name: "Operator",
-      email: "operator@peykgoz.az",
+      email: "operator@pelagos.az",
     }
   );
 }

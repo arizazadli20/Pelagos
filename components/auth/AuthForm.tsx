@@ -81,7 +81,7 @@ export default function AuthForm({ mode }: Props) {
               <Waves size={18} strokeWidth={2.25} />
             </div>
             <div>
-              <div className="auth-card-title">PEYKGÖZ</div>
+              <div className="auth-card-title">Pelagos</div>
               <div className="auth-card-sub">Satellite & AI Oil Spill Intelligence</div>
             </div>
           </div>
@@ -92,7 +92,7 @@ export default function AuthForm({ mode }: Props) {
           <p className="auth-lede">
             {mode === "login"
               ? "Access the Caspian Sea operations workspace."
-              : "Register to enter the PEYKGÖZ operational platform."}
+              : "Register to enter the Pelagos operational platform."}
           </p>
 
           <form onSubmit={handleSubmit} className="auth-form" noValidate>
