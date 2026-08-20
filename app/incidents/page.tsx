@@ -258,7 +258,7 @@ function IncidentsContent() {
               <SortHead label="Area" column="areaM2" />
               <SortHead label="Risk" column="risk" />
               <SortHead label="Status" column="status" />
-              <SortHead label="AI Conf." column="aiProbability" />
+              <SortHead label="Model Conf." column="aiProbability" />
               <span style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.07em", textTransform: "uppercase", color: "var(--text-tertiary)" }}>
                 Action
               </span>
@@ -310,7 +310,7 @@ function IncidentsContent() {
                   }}
                   style={{
                     background: "var(--accent-soft)",
-                    border: "1px solid rgba(56,189,248,0.3)",
+                    border: "1px solid rgba(224,141,91,0.3)",
                     borderRadius: 6,
                     color: "var(--accent)",
                     fontSize: 11,

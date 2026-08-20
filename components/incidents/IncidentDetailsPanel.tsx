@@ -130,23 +130,23 @@ const actionBtnStyle = (variant: "primary" | "danger" | "neutral" | "warn"): Rea
   const map = {
     primary: {
       color: "var(--accent)",
-      border: "1px solid rgba(56,189,248,0.35)",
+      border: "1px solid rgba(224,141,91,0.35)",
       background: "var(--accent-soft)",
     },
     danger: {
-      color: "#f87171",
-      border: "1px solid rgba(239,68,68,0.3)",
-      background: "rgba(239,68,68,0.1)",
+      color: "#e07875",
+      border: "1px solid rgba(217,83,79,0.3)",
+      background: "rgba(217,83,79,0.1)",
     },
     warn: {
-      color: "#fbbf24",
-      border: "1px solid rgba(245,158,11,0.3)",
-      background: "rgba(245,158,11,0.1)",
+      color: "#edb96a",
+      border: "1px solid rgba(232,163,61,0.3)",
+      background: "rgba(232,163,61,0.1)",
     },
     neutral: {
-      color: "#7dd3fc",
-      border: "1px solid rgba(125,211,252,0.3)",
-      background: "rgba(125,211,252,0.08)",
+      color: "#e8b08a",
+      border: "1px solid rgba(224,141,91,0.3)",
+      background: "rgba(224,141,91,0.08)",
     },
   }[variant];
 
@@ -216,9 +216,12 @@ export default function IncidentDetailsPanel({ incident, onClose }: Props) {
               <Field label="Status">
                 <StatusBadge status={live.status} />
               </Field>
-              <Field label="AI confidence">
+              <Field label="Model confidence">
                 <span style={{ color: "var(--accent)", fontWeight: 600 }}>
                   {Math.round(live.aiProbability * 100)}%
+                </span>
+                <span style={{ fontSize: 10, color: "var(--text-tertiary)", marginLeft: 4 }}>
+                  (not a pollution probability)
                 </span>
               </Field>
               <Field label="Review status">{live.reviewStatus}</Field>
@@ -230,17 +233,22 @@ export default function IncidentDetailsPanel({ incident, onClose }: Props) {
               <ImagePlaceholder
                 title="Original SAR (mock)"
                 subtitle="Placeholder — Sentinel-1 feed not connected"
-                accent="rgba(56,189,248,0.08)"
+                accent="rgba(224,141,91,0.08)"
               />
               <ImagePlaceholder
                 title="AI overlay (mock)"
                 subtitle="Detected boundary placeholder"
-                accent="rgba(239,68,68,0.1)"
+                accent="rgba(217,83,79,0.1)"
               />
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginTop: 12 }}>
-              <Field label="Detected spill area">{formatAreaM2(live.areaM2)}</Field>
-              <Field label="AI confidence">{Math.round(live.aiProbability * 100)}%</Field>
+              <Field label="Detected area">{formatAreaM2(live.areaM2)}</Field>
+              <Field label="Model confidence">
+                {Math.round(live.aiProbability * 100)}%
+                <span style={{ fontSize: 10, color: "var(--text-tertiary)", marginLeft: 4 }}>
+                  (not a pollution probability)
+                </span>
+              </Field>
             </div>
           </Section>
 
@@ -251,22 +259,27 @@ export default function IncidentDetailsPanel({ incident, onClose }: Props) {
             <Field label="Estimated cause">
               <div style={{ marginTop: 8 }}>{live.estimatedCause}</div>
             </Field>
-            <Field label="Possible source">
-              <div style={{ marginTop: 8 }}>{live.spillSource}</div>
+            <Field label="Unconfirmed source hypothesis">
+              <div style={{ marginTop: 8 }}>
+                {live.spillSource}
+                <span style={{ fontSize: 10, color: "var(--text-tertiary)", marginLeft: 6 }}>
+                  — unconfirmed, pending human review
+                </span>
+              </div>
             </Field>
             <div
               style={{
                 marginTop: 12,
                 padding: "10px 12px",
                 borderRadius: 8,
-                background: "rgba(245,158,11,0.08)",
-                border: "1px solid rgba(245,158,11,0.28)",
+                background: "rgba(232,163,61,0.08)",
+                border: "1px solid rgba(232,163,61,0.28)",
                 fontSize: 12,
                 color: "var(--text-secondary)",
                 lineHeight: 1.45,
               }}
             >
-              <strong style={{ color: "#fbbf24" }}>Human review required.</strong>
+              <strong style={{ color: "#edb96a" }}>Human review required.</strong>
               <br />
               AI provides analysis and recommendations. Final operational decisions are made by
               human experts.
