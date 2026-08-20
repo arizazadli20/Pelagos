@@ -1,5 +1,5 @@
 // ============================================================
-// PEYKGÖZ domain models
+// Pelagos domain models
 // ============================================================
 // Shared TypeScript interfaces for the multi-page app.
 // Later: backend / satellite / AI / AIS / weather APIs should
@@ -74,16 +74,6 @@ export type Incident = {
   responseStatus: string;
   relatedVesselId?: string;
   affectedVesselIds: string[];
-  weatherSnapshot?: IncidentWeather;
-};
-
-export type IncidentWeather = {
-  windSpeedKnots: number;
-  windHeading: number;
-  currentSpeedKnots: number;
-  visibilityKm: number;
-  seaState: string;
-  temperatureC: number;
 };
 
 export type IncidentStats = {
