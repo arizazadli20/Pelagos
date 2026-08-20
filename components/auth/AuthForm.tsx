@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Waves, ArrowRight, Loader2, ArrowLeft } from "lucide-react";
+import { ArrowRight, Loader2, ArrowLeft } from "lucide-react";
 import { login, register, syncAuthCookie, isAuthenticated } from "@/lib/auth";
 import { useEffect } from "react";
 
@@ -77,9 +77,7 @@ export default function AuthForm({ mode }: Props) {
 
         <div className="auth-card">
           <div className="auth-card-brand">
-            <div className="auth-card-logo">
-              <Waves size={18} strokeWidth={2.25} />
-            </div>
+            <img src="/logo-icon.png" alt="Pelagos" className="auth-card-logo" />
             <div>
               <div className="auth-card-title">Pelagos</div>
               <div className="auth-card-sub">Satellite & AI Oil Spill Intelligence</div>

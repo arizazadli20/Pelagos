@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Waves, Satellite, Brain, Ship, UserCheck, ArrowRight } from "lucide-react";
+import { Satellite, Brain, Ship, UserCheck, ArrowRight } from "lucide-react";
 
 const FEATURES = [
   {
@@ -51,21 +51,11 @@ const STEPS = [
 
 function BrandMark({ size = 34 }: { size?: number }) {
   return (
-    <div
-      style={{
-        width: size,
-        height: size,
-        borderRadius: 8,
-        background: "linear-gradient(145deg, var(--accent) 0%, #5a9078 100%)",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        color: "var(--bg-elevated)",
-        flexShrink: 0,
-      }}
-    >
-      <Waves size={Math.round(size * 0.5)} strokeWidth={2.25} />
-    </div>
+    <img
+      src="/logo-icon.png"
+      alt="Pelagos"
+      style={{ width: size, height: size, objectFit: "contain", flexShrink: 0 }}
+    />
   );
 }
 
