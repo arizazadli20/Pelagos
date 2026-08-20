@@ -228,8 +228,8 @@ The main app flow does **not** currently read `process.env` configuration.
 | Variable | Required | Used by | Notes |
 | --- | --- | --- | --- |
 | *(none for mock demo)* | — | Landing, auth, dashboard, ops pages | Auth uses browser `localStorage` + the `peykgoz-auth` cookie |
-| `COPERNICUS_CLIENT_ID` *(recommended)* | No (not wired yet) | Intended for `/api/copernicus-token` | Credentials are currently hardcoded in the route file |
-| `COPERNICUS_CLIENT_SECRET` *(recommended)* | No (not wired yet) | Intended for `/api/copernicus-token` | Move out of source before deploying |
+| `COPERNICUS_CLIENT_ID` | Yes (for token route) | `/api/copernicus-token` | Copernicus CDSE client ID — copy `.env.example` to `.env.local` |
+| `COPERNICUS_CLIENT_SECRET` | Yes (for token route) | `/api/copernicus-token` | Copernicus CDSE client secret — never commit real values |
 
 Cookie / storage keys (not env vars, but important runtime identifiers):
 

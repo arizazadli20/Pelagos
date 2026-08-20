@@ -77,11 +77,11 @@ export default function Header({
             width: 36,
             height: 36,
             borderRadius: 8,
-            background: "linear-gradient(145deg, #0ea5e9 0%, #0369a1 100%)",
+            background: "linear-gradient(145deg, #E08D5B 0%, #b8693a 100%)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            color: "#f0f9ff",
+            color: "#2E262A",
             flexShrink: 0,
           }}
         >
