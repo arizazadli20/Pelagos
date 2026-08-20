@@ -138,7 +138,7 @@ function ReportsContent() {
                         {count} ({pct}%)
                       </span>
                     </div>
-                    <div style={{ height: 8, borderRadius: 4, background: "rgba(255,255,255,0.06)" }}>
+                    <div style={{ height: 8, borderRadius: 4, background: "rgba(43,45,66,0.08)" }}>
                       <div style={{ width: `${pct}%`, height: "100%", borderRadius: 4, background: color }} />
                     </div>
                   </div>
@@ -219,7 +219,7 @@ function Row({ label, value }: { label: string; value: string }) {
         justifyContent: "space-between",
         gap: 12,
         padding: "8px 0",
-        borderBottom: "1px solid rgba(42,63,85,0.35)",
+        borderBottom: "1px solid var(--border-muted)",
       }}
     >
       <span style={{ color: "var(--text-secondary)", fontSize: 13 }}>{label}</span>

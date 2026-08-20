@@ -64,7 +64,7 @@ export default function Header({
         alignItems: "center",
         justifyContent: "space-between",
         padding: "0 20px",
-        background: "rgba(11, 20, 32, 0.94)",
+        background: "rgba(255, 255, 255, 0.92)",
         borderBottom: "1px solid var(--glass-border)",
         flexShrink: 0,
         zIndex: 50,
@@ -77,11 +77,11 @@ export default function Header({
             width: 36,
             height: 36,
             borderRadius: 8,
-            background: "linear-gradient(145deg, #E08D5B 0%, #b8693a 100%)",
+            background: "linear-gradient(145deg, var(--accent) 0%, #5a9078 100%)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            color: "#2E262A",
+            color: "var(--bg-elevated)",
             flexShrink: 0,
           }}
         >
@@ -96,7 +96,7 @@ export default function Header({
               color: "var(--text-primary)",
             }}
           >
-            PEYKGÖZ
+            Pelagos
           </span>
           <span
             style={{

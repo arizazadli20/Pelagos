@@ -28,7 +28,7 @@ const META: Record<
   confirmed: { color: "var(--color-med)", icon: <ShieldCheck size={14} />, label: "Confirmed" },
   response: { color: "var(--accent)", icon: <Siren size={14} />, label: "Response" },
   cleanup: { color: "var(--color-low)", icon: <Droplets size={14} />, label: "Cleanup" },
-  vessel: { color: "#E08D5B", icon: <Ship size={14} />, label: "Vessel" },
+  vessel: { color: "var(--accent)", icon: <Ship size={14} />, label: "Vessel" },
   alert: { color: "var(--color-med)", icon: <AlertTriangle size={14} />, label: "Alert" },
   dispatch: { color: "var(--text-secondary)", icon: <Siren size={14} />, label: "Dispatch" },
   collection: { color: "var(--color-low)", icon: <Droplets size={14} />, label: "Collection" },

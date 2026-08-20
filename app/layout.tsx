@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "PEYKGÖZ — Satellite & AI Oil Spill Intelligence",
+  title: "Pelagos — Satellite & AI Oil Spill Intelligence",
   description:
-    "PEYKGÖZ detects potential oil spills on the Caspian Sea using satellite SAR imagery, analyzes them with AI, and supports human review, response, and cleanup.",
+    "Pelagos detects potential oil spills on the Caspian Sea using satellite SAR imagery, analyzes them with AI, and supports human review, response, and cleanup.",
   keywords: [
     "oil spill detection",
     "Caspian Sea",
@@ -12,10 +12,10 @@ export const metadata: Metadata = {
     "Sentinel-1",
     "SAR",
     "maritime intelligence",
-    "PEYKGÖZ",
+    "Pelagos",
   ],
   openGraph: {
-    title: "PEYKGÖZ Dashboard",
+    title: "Pelagos Dashboard",
     description:
       "Caspian Sea oil spill intelligence — satellite detection, AI analysis, and operator response.",
     type: "website",

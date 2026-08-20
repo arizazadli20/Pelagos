@@ -56,11 +56,11 @@ function BrandMark({ size = 34 }: { size?: number }) {
         width: size,
         height: size,
         borderRadius: 8,
-        background: "linear-gradient(145deg, #E08D5B 0%, #b8693a 100%)",
+        background: "linear-gradient(145deg, var(--accent) 0%, #5a9078 100%)",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        color: "#2E262A",
+        color: "var(--bg-elevated)",
         flexShrink: 0,
       }}
     >
@@ -78,7 +78,7 @@ export default function LandingPage() {
           <Link href="/" className="landing-brand">
             <BrandMark />
             <div>
-              <div className="landing-brand-name">PEYKGÖZ</div>
+              <div className="landing-brand-name">Pelagos</div>
               <div className="landing-brand-tag">Satellite & AI Oil Spill Intelligence</div>
             </div>
           </Link>
@@ -106,7 +106,7 @@ export default function LandingPage() {
             Act.
           </h1>
           <p className="landing-support">
-            PEYKGÖZ combines satellite intelligence, AI analysis and operational data to help
+            Pelagos combines satellite intelligence, AI analysis and operational data to help
             detect oil spills, assess risk, and support human-led response across the Caspian Sea.
           </p>
           <div className="landing-cta-row">
@@ -185,11 +185,11 @@ export default function LandingPage() {
         <div className="landing-section-inner landing-bottom-inner">
           <h2>Ready to monitor smarter?</h2>
           <p>
-            Enter PEYKGÖZ to access Caspian Sea oil spill intelligence, AI analysis support and
+            Enter Pelagos to access Caspian Sea oil spill intelligence, AI analysis support and
             human-led response workflows.
           </p>
           <Link href="/register" className="landing-btn landing-btn-primary landing-btn-lg">
-            Enter PEYKGÖZ <ArrowRight size={16} />
+            Enter Pelagos <ArrowRight size={16} />
           </Link>
         </div>
       </section>
@@ -202,7 +202,7 @@ export default function LandingPage() {
               <BrandMark size={28} />
               <div>
                 <div className="landing-brand-name" style={{ fontSize: 13 }}>
-                  PEYKGÖZ
+                  Pelagos
                 </div>
                 <div className="landing-brand-tag">Satellite & AI Oil Spill Intelligence</div>
               </div>

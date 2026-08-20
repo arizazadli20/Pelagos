@@ -12,7 +12,7 @@ type Props = {
 const STATUS_STYLES: Record<Vessel["status"], { color: string; bg: string; border: string }> = {
   "In port":     { color: "var(--color-low)", bg: "rgba(34, 197, 94, 0.1)", border: "rgba(34, 197, 94, 0.2)" },
   "Approaching": { color: "var(--color-med)", bg: "rgba(245, 158, 11, 0.1)", border: "rgba(245, 158, 11, 0.2)" },
-  "Transiting":  { color: "var(--text-secondary)", bg: "rgba(255, 255, 255, 0.05)", border: "var(--glass-border)" },
+  "Transiting":  { color: "var(--text-secondary)", bg: "rgba(43, 45, 66, 0.06)", border: "var(--glass-border)" },
 };
 
 function headingArrow(deg: number): string {

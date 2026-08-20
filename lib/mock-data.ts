@@ -1,5 +1,5 @@
 // ============================================================
-// PEYKGÖZ Mock Data
+// Pelagos Mock Data
 // ============================================================
 // To swap for a real API, replace this file with a module that
 // exports the same `mockData` object shape, fetching from your
@@ -16,7 +16,6 @@ export type {
   Incident,
   IncidentStats,
   IncidentStatus,
-  IncidentWeather,
   HumanDecision,
   SpillSource,
   RiskLevel,
@@ -464,14 +463,6 @@ export const mockData = {
       humanDecision: "pending",
       responseStatus: "Awaiting human review",
       relatedVesselId: "v-011",
-      weatherSnapshot: {
-        windSpeedKnots: 14,
-        windHeading: 220,
-        currentSpeedKnots: 1.4,
-        visibilityKm: 12,
-        seaState: "Slight",
-        temperatureC: 27,
-      },
     },
     {
       id: "inc-023",
@@ -494,14 +485,6 @@ export const mockData = {
       humanDecisionNote: "Confirmed spill. Bravo Team assigned for boom deployment.",
       responseStatus: "Cleaning in progress — Bravo Team",
       relatedVesselId: "v-001",
-      weatherSnapshot: {
-        windSpeedKnots: 12,
-        windHeading: 210,
-        currentSpeedKnots: 1.5,
-        visibilityKm: 14,
-        seaState: "Calm",
-        temperatureC: 28,
-      },
     },
     {
       id: "inc-022",
@@ -524,14 +507,6 @@ export const mockData = {
       humanDecisionNote: "Minor residue confirmed and cleaned.",
       responseStatus: "Cleaning completed",
       relatedVesselId: "v-010",
-      weatherSnapshot: {
-        windSpeedKnots: 8,
-        windHeading: 180,
-        currentSpeedKnots: 0.9,
-        visibilityKm: 16,
-        seaState: "Calm",
-        temperatureC: 29,
-      },
     },
     {
       id: "inc-021",
@@ -554,14 +529,6 @@ export const mockData = {
       humanDecisionNote: "High-risk confirmation. Alpha Response mobilized.",
       responseStatus: "Cleaning in progress — Alpha Response",
       relatedVesselId: "v-006",
-      weatherSnapshot: {
-        windSpeedKnots: 16,
-        windHeading: 245,
-        currentSpeedKnots: 1.8,
-        visibilityKm: 10,
-        seaState: "Moderate",
-        temperatureC: 26,
-      },
     },
     {
       id: "inc-020",
@@ -581,14 +548,6 @@ export const mockData = {
       humanDecision: "pending",
       responseStatus: "Awaiting human review",
       relatedVesselId: "v-005",
-      weatherSnapshot: {
-        windSpeedKnots: 11,
-        windHeading: 200,
-        currentSpeedKnots: 1.2,
-        visibilityKm: 13,
-        seaState: "Slight",
-        temperatureC: 27,
-      },
     },
     {
       id: "inc-019",
@@ -607,14 +566,6 @@ export const mockData = {
         "Largest open-water anomaly this cycle near Neft Daşları complex. Multi-look SAR consensus 96%. Immediate specialist triage recommended.",
       humanDecision: "pending",
       responseStatus: "Newly detected — queued for AI package review",
-      weatherSnapshot: {
-        windSpeedKnots: 18,
-        windHeading: 260,
-        currentSpeedKnots: 2.1,
-        visibilityKm: 9,
-        seaState: "Moderate",
-        temperatureC: 25,
-      },
     },
     {
       id: "inc-018",
@@ -636,14 +587,6 @@ export const mockData = {
       humanDecisionAt: "2026-08-08T17:05:00Z",
       humanDecisionNote: "Rejected as wind-lookalike. No response required.",
       responseStatus: "No response — false positive",
-      weatherSnapshot: {
-        windSpeedKnots: 20,
-        windHeading: 270,
-        currentSpeedKnots: 1.6,
-        visibilityKm: 11,
-        seaState: "Moderate",
-        temperatureC: 26,
-      },
     },
     {
       id: "inc-017",
@@ -665,14 +608,6 @@ export const mockData = {
       humanDecisionAt: "2026-08-08T11:40:00Z",
       responseStatus: "Cleaning completed",
       relatedVesselId: "v-008",
-      weatherSnapshot: {
-        windSpeedKnots: 10,
-        windHeading: 190,
-        currentSpeedKnots: 1.1,
-        visibilityKm: 15,
-        seaState: "Slight",
-        temperatureC: 27,
-      },
     },
     {
       id: "inc-016",
@@ -691,14 +626,6 @@ export const mockData = {
         "Nearshore anomaly south of Garadagh. Geometry aligned with coastal pipeline ROW. Elevated environmental sensitivity due to proximity to shore.",
       humanDecision: "pending",
       responseStatus: "Newly detected",
-      weatherSnapshot: {
-        windSpeedKnots: 9,
-        windHeading: 160,
-        currentSpeedKnots: 0.8,
-        visibilityKm: 14,
-        seaState: "Calm",
-        temperatureC: 28,
-      },
     },
   ] as any[]).map(hydrateIncident),
 

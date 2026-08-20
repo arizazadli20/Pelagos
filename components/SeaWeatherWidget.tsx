@@ -179,7 +179,7 @@ function MetricCol({ icon, label, primaryValue, secondaryLabel, dirDeg, alertCol
         padding: "12px 8px",
         borderRadius: "8px",
         /* subtle highlight when hazard detected */
-        background: acol ? `${acol}0d` : "rgba(255,255,255,0.02)",
+        background: acol ? `${acol}0d` : "rgba(43,45,66,0.03)",
         border: `1px solid ${acol ? `${acol}33` : "var(--glass-border)"}`,
         gap: "6px",
         minHeight: "0",
@@ -243,7 +243,7 @@ function SkeletonCol() {
       gap: "8px",
       padding: "14px 8px",
       borderRadius: "8px",
-      background: "rgba(255,255,255,0.02)",
+      background: "rgba(43,45,66,0.03)",
       border: "1px solid var(--glass-border)",
     }}>
       <Skeleton w="48px" h="10px" />

@@ -245,7 +245,7 @@ function IncidentsContent() {
                 gap: 8,
                 padding: "10px 16px",
                 borderBottom: "1px solid var(--glass-border)",
-                background: "rgba(0,0,0,0.18)",
+                background: "var(--card-surface)",
                 position: "sticky",
                 top: 0,
                 zIndex: 1,
@@ -280,7 +280,7 @@ function IncidentsContent() {
                   gap: 8,
                   padding: "12px 16px",
                   alignItems: "center",
-                  borderBottom: i < filtered.length - 1 ? "1px solid rgba(42,63,85,0.35)" : "none",
+                  borderBottom: i < filtered.length - 1 ? "1px solid var(--border-muted)" : "none",
                   borderRadius: 0,
                   minWidth: 900,
                   cursor: "pointer",
@@ -310,7 +310,7 @@ function IncidentsContent() {
                   }}
                   style={{
                     background: "var(--accent-soft)",
-                    border: "1px solid rgba(224,141,91,0.3)",
+                    border: "1px solid rgba(129,178,154,0.3)",
                     borderRadius: 6,
                     color: "var(--accent)",
                     fontSize: 11,
