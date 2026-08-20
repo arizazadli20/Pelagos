@@ -71,7 +71,7 @@ export async function getWindContext(
       "current",
       "temperature_2m,wind_speed_10m,wind_direction_10m,wind_gusts_10m"
     );
-    url.searchParams.set("past_days", "3");
+    url.searchParams.set("past_days", "16");
     url.searchParams.set("wind_speed_unit", "kn");
     url.searchParams.set("timezone", "UTC");
 
@@ -128,6 +128,7 @@ export async function getSeaState(
     url.searchParams.set("longitude", String(lng));
     url.searchParams.set("hourly", "wave_height,wave_direction,wave_period");
     url.searchParams.set("models", "best_match");
+    url.searchParams.set("past_days", "16");
     url.searchParams.set("forecast_days", "7");
 
     const res = await fetch(url.toString());
