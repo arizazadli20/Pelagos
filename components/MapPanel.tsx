@@ -20,9 +20,9 @@ type Props = {
 };
 
 function riskColor(risk: Incident["risk"]) {
-  if (risk === "HIGH") return "#ef4444";
-  if (risk === "MEDIUM") return "#f59e0b";
-  return "#22c55e";
+  if (risk === "HIGH") return "var(--color-high)";
+  if (risk === "MEDIUM") return "var(--color-med)";
+  return "var(--color-low)";
 }
 
 function createSpillIcon(L: any, active: boolean) {
@@ -35,7 +35,7 @@ function createSpillIcon(L: any, active: boolean) {
               position:absolute;top:50%;left:50%;
               width:${size * 2.8}px;height:${size * 2.8}px;
               border-radius:50%;
-              border:1px solid rgba(239,68,68,0.45);
+              border:1px solid rgba(224,122,95,0.45);
               transform:translate(-50%,-50%);
               animation:markerRing 2s ease-out infinite;
             "></div>`
@@ -44,9 +44,9 @@ function createSpillIcon(L: any, active: boolean) {
       <div style="
         width:${size}px;height:${size}px;
         border-radius:50%;
-        background:#ef4444;
-        border:2px solid #fff;
-        box-shadow:0 1px 4px rgba(0,0,0,0.45);
+        background:var(--color-high);
+        border:2px solid var(--bg-elevated);
+        box-shadow:0 1px 4px rgba(43,45,66,0.35);
         ${active ? "animation:markerPulse 2s ease-out infinite;" : ""}
       "></div>
     </div>
@@ -70,8 +70,8 @@ function createVesselIcon(L: any, heading: number) {
         width:0;height:0;
         border-left:5px solid transparent;
         border-right:5px solid transparent;
-        border-bottom:11px solid #3b82f6;
-        filter:drop-shadow(0 1px 2px rgba(0,0,0,0.4));
+        border-bottom:11px solid var(--accent);
+        filter:drop-shadow(0 1px 2px rgba(43,45,66,0.3));
       "></div>
     </div>
   `;
@@ -89,30 +89,30 @@ function makeIncidentPopup(inc: Incident) {
   return `
     <div style="padding:16px;font-family:'IBM Plex Sans',sans-serif;min-width:240px;">
       <div style="margin-bottom:4px;">
-        <div style="font-size:13px;font-weight:700;color:#e8eef4;letter-spacing:0.04em;">
+        <div style="font-size:13px;font-weight:700;color:var(--text-primary);letter-spacing:0.04em;">
           INCIDENT ${inc.displayId}
         </div>
-        <div style="font-size:12px;color:#8fa3b8;margin-top:3px;">${inc.location}</div>
+        <div style="font-size:12px;color:var(--text-secondary);margin-top:3px;">${inc.location}</div>
       </div>
 
-      <div style="height:1px;background:rgba(42,63,85,0.7);margin:12px 0;"></div>
+      <div style="height:1px;background:var(--border-muted);margin:12px 0;"></div>
 
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
         <div>
-          <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.06em;color:#5c738a;margin-bottom:4px;">Area</div>
-          <div style="font-size:15px;font-weight:600;color:#e8eef4;font-variant-numeric:tabular-nums;">${formatAreaM2(inc.areaM2)}</div>
+          <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-tertiary);margin-bottom:4px;">Area</div>
+          <div style="font-size:15px;font-weight:600;color:var(--text-primary);font-variant-numeric:tabular-nums;">${formatAreaM2(inc.areaM2)}</div>
         </div>
         <div>
-          <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.06em;color:#5c738a;margin-bottom:4px;">AI Probability</div>
-          <div style="font-size:15px;font-weight:600;color:#38bdf8;font-variant-numeric:tabular-nums;">${pct}%</div>
+          <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-tertiary);margin-bottom:4px;">Model Confidence</div>
+          <div style="font-size:15px;font-weight:600;color:var(--accent);font-variant-numeric:tabular-nums;">${pct}%</div>
         </div>
         <div>
-          <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.06em;color:#5c738a;margin-bottom:4px;">Risk</div>
+          <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-tertiary);margin-bottom:4px;">Risk</div>
           <div style="font-size:13px;font-weight:700;color:${risk};letter-spacing:0.05em;">${inc.risk}</div>
         </div>
         <div>
-          <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.06em;color:#5c738a;margin-bottom:4px;">Status</div>
-          <div style="font-size:13px;font-weight:600;color:#e8eef4;">${INCIDENT_STATUS_LABEL[inc.status].toUpperCase()}</div>
+          <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-tertiary);margin-bottom:4px;">Status</div>
+          <div style="font-size:13px;font-weight:600;color:var(--text-primary);">${INCIDENT_STATUS_LABEL[inc.status].toUpperCase()}</div>
         </div>
       </div>
 
@@ -126,7 +126,7 @@ export default function MapPanel({
   vessels,
   riskZones,
   activeMapCoords,
-  mapTheme = "dark",
+  mapTheme = "light",
   onIncidentSelect,
 }: Props) {
   const mapRef = useRef<HTMLDivElement>(null);
@@ -202,8 +202,8 @@ export default function MapPanel({
         const isHigh = zone.level === "high";
         const circle = L.circle([zone.lat, zone.lng], {
           radius: zone.radiusM,
-          color: isHigh ? "#f59e0b" : "#eab308",
-          fillColor: isHigh ? "#f59e0b" : "#eab308",
+          color: isHigh ? "#E9C46A" : "#C9A048",
+          fillColor: isHigh ? "#E9C46A" : "#C9A048",
           fillOpacity: isHigh ? 0.14 : 0.1,
           weight: 1.25,
           opacity: 0.7,
@@ -315,8 +315,8 @@ export default function MapPanel({
               width: 10,
               height: 10,
               borderRadius: "50%",
-              background: "#ef4444",
-              border: "1.5px solid #fff",
+              background: "var(--color-high)",
+              border: "1.5px solid var(--bg-elevated)",
             }}
           />
           <span style={{ fontSize: 11, color: "var(--text-secondary)", fontWeight: 500 }}>
@@ -330,7 +330,7 @@ export default function MapPanel({
               height: 0,
               borderLeft: "5px solid transparent",
               borderRight: "5px solid transparent",
-              borderBottom: "9px solid #3b82f6",
+              borderBottom: "9px solid var(--accent)",
               marginLeft: 1,
             }}
           />
@@ -344,8 +344,8 @@ export default function MapPanel({
               width: 12,
               height: 12,
               borderRadius: "50%",
-              background: "rgba(245,158,11,0.35)",
-              border: "1px solid #f59e0b",
+              background: "rgba(233,196,106,0.35)",
+              border: "1px solid var(--color-med)",
             }}
           />
           <span style={{ fontSize: 11, color: "var(--text-secondary)", fontWeight: 500 }}>

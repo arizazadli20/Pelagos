@@ -121,9 +121,9 @@ function AiAnalysisContent() {
                   }}
                   className="ai-metrics"
                 >
-                  <Metric label="Spill probability" value={`${a.spillProbability}%`} />
+                  <Metric label="Model confidence" value={`${a.spillProbability}%`} />
                   <Metric label="Estimated area" value={formatAreaM2(a.estimatedAreaM2)} />
-                  <Metric label="AI confidence" value={`${a.confidence}%`} />
+                  <Metric label="Detection confidence" value={`${a.confidence}%`} />
                   <Metric label="Analyzed at" value={formatDateTimeAZT(a.analyzedAt)} />
                 </div>
 
@@ -131,7 +131,7 @@ function AiAnalysisContent() {
                   {a.summary}
                 </p>
                 <div style={{ marginTop: 10, fontSize: 12, color: "var(--text-tertiary)" }}>
-                  Possible source: {a.possibleSource} · {a.estimatedCause}
+                  Unconfirmed source hypothesis: {a.possibleSource} · {a.estimatedCause} — pending human review
                 </div>
               </article>
             ))}

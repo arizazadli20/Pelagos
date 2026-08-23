@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Waves, User, LogOut } from "lucide-react";
+import { User, LogOut } from "lucide-react";
 
 type Props = {
   onLogout?: () => void;
@@ -64,7 +64,7 @@ export default function Header({
         alignItems: "center",
         justifyContent: "space-between",
         padding: "0 20px",
-        background: "rgba(11, 20, 32, 0.94)",
+        background: "rgba(255, 255, 255, 0.92)",
         borderBottom: "1px solid var(--glass-border)",
         flexShrink: 0,
         zIndex: 50,
@@ -72,21 +72,11 @@ export default function Header({
     >
       {/* Left — Brand */}
       <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-        <div
-          style={{
-            width: 36,
-            height: 36,
-            borderRadius: 8,
-            background: "linear-gradient(145deg, #0ea5e9 0%, #0369a1 100%)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            color: "#f0f9ff",
-            flexShrink: 0,
-          }}
-        >
-          <Waves size={18} strokeWidth={2.25} />
-        </div>
+        <img
+          src="/logo-icon.png"
+          alt="Pelagos"
+          style={{ width: 36, height: 36, objectFit: "contain", flexShrink: 0 }}
+        />
         <div style={{ display: "flex", flexDirection: "column", lineHeight: 1.15 }}>
           <span
             style={{
@@ -96,7 +86,7 @@ export default function Header({
               color: "var(--text-primary)",
             }}
           >
-            PEYKGÖZ
+            Pelagos
           </span>
           <span
             style={{

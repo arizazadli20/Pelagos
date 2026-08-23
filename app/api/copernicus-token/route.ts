@@ -1,11 +1,21 @@
 import { NextResponse } from 'next/server';
 
 export async function GET() {
+    const clientId = process.env.COPERNICUS_CLIENT_ID;
+    const clientSecret = process.env.COPERNICUS_CLIENT_SECRET;
+
+    if (!clientId || !clientSecret) {
+        return NextResponse.json(
+            { error: "Copernicus credentials not configured. Set COPERNICUS_CLIENT_ID and COPERNICUS_CLIENT_SECRET." },
+            { status: 500 }
+        );
+    }
+
     const url = "https://identity.dataspace.copernicus.eu/auth/realms/CDSE/protocol/openid-connect/token";
-    
+
     const params = new URLSearchParams();
-    params.append('client_id', 'sh-9f26ba13-eeb0-4310-8887-89348ba6f164');
-    params.append('client_secret', '6tlvBtOAhHYmU9ROQ4by7t4ZVMJlSL5b');
+    params.append('client_id', clientId);
+    params.append('client_secret', clientSecret);
     params.append('grant_type', 'client_credentials');
 
     try {

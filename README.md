@@ -1,8 +1,8 @@
-# PEYKGÖZ
+# Pelagos
 
 **Satellite & AI oil spill intelligence for the Caspian Sea**
 
-PEYKGÖZ is a Next.js operational demo platform that helps operators detect, review, and respond to potential oil spills using satellite-oriented workflows and AI-assisted analysis. It provides a landing site, mock authentication, a maritime dashboard, and multi-page ops tools (incidents, vessels, AI analysis, response, reports) backed by centralized mock data designed to be replaced by real APIs later.
+Pelagos is a Next.js operational demo platform that helps operators detect, review, and respond to potential oil spills using satellite-oriented workflows and AI-assisted analysis. It provides a landing site, mock authentication, a maritime dashboard, and multi-page ops tools (incidents, vessels, AI analysis, response, reports) backed by centralized mock data designed to be replaced by real APIs later.
 
 ---
 
@@ -73,7 +73,7 @@ Optional API:
 - **Frontend-first monolith**: a single Next.js app (no microservices).
 - **REST surface today**: one App Router API route (`/api/copernicus-token`).
 - **Data flow**: mock seed data → shared incident store → pages/components; HITL actions mutate store state in memory for the session.
-- **Auth flow**: login/register write localStorage + `peykgoz-auth` cookie; middleware protects ops routes; logout clears session and returns to the landing page.
+- **Auth flow**: login/register write localStorage + `pelagos-auth` cookie; middleware protects ops routes; logout clears session and returns to the landing page.
 
 ### Directory layout
 
@@ -227,16 +227,16 @@ The main app flow does **not** currently read `process.env` configuration.
 
 | Variable | Required | Used by | Notes |
 | --- | --- | --- | --- |
-| *(none for mock demo)* | — | Landing, auth, dashboard, ops pages | Auth uses browser `localStorage` + the `peykgoz-auth` cookie |
-| `COPERNICUS_CLIENT_ID` *(recommended)* | No (not wired yet) | Intended for `/api/copernicus-token` | Credentials are currently hardcoded in the route file |
-| `COPERNICUS_CLIENT_SECRET` *(recommended)* | No (not wired yet) | Intended for `/api/copernicus-token` | Move out of source before deploying |
+| *(none for mock demo)* | — | Landing, auth, dashboard, ops pages | Auth uses browser `localStorage` + the `pelagos-auth` cookie |
+| `COPERNICUS_CLIENT_ID` | Yes (for token route) | `/api/copernicus-token` | Copernicus CDSE client ID — copy `.env.example` to `.env.local` |
+| `COPERNICUS_CLIENT_SECRET` | Yes (for token route) | `/api/copernicus-token` | Copernicus CDSE client secret — never commit real values |
 
 Cookie / storage keys (not env vars, but important runtime identifiers):
 
 | Key | Where | Purpose |
 | --- | --- | --- |
-| `peykgoz-auth` | Cookie + localStorage flag | Middleware / client auth gate |
-| `peykgoz-user` | localStorage | Stored mock user profile (`name`, `email`) |
+| `pelagos-auth` | Cookie + localStorage flag | Middleware / client auth gate |
+| `pelagos-user` | localStorage | Stored mock user profile (`name`, `email`) |
 
 ---
 

@@ -99,7 +99,7 @@ export default function Sidebar({ active = "dashboard" }: Props) {
             }}
             onMouseEnter={(e) => {
               if (!isActive) {
-                e.currentTarget.style.background = "rgba(255,255,255,0.03)";
+                e.currentTarget.style.background = "rgba(43,45,66,0.05)";
                 e.currentTarget.style.color = "var(--text-primary)";
               }
             }}
