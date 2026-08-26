@@ -30,25 +30,51 @@ const NAV: NavItem[] = [
 
 type Props = {
   active?: NavId;
+  open: boolean;
+  onClose: () => void;
 };
 
-export default function Sidebar({ active = "dashboard" }: Props) {
+export default function Sidebar({ active = "dashboard", open, onClose }: Props) {
   const router = useRouter();
   const pathname = usePathname();
 
   return (
-    <aside
-      style={{
-        width: "var(--sidebar-width)",
-        flexShrink: 0,
-        background: "var(--bg-elevated)",
-        borderRight: "1px solid var(--glass-border)",
-        display: "flex",
-        flexDirection: "column",
-        padding: "16px 12px",
-        gap: "4px",
-      }}
-    >
+    <>
+      {open && (
+        <div
+          onClick={onClose}
+          aria-hidden="true"
+          style={{
+            position: "fixed",
+            top: "var(--header-height)",
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: "rgba(43, 45, 66, 0.35)",
+            zIndex: 199,
+          }}
+        />
+      )}
+      <aside
+        style={{
+          position: "fixed",
+          top: "var(--header-height)",
+          left: 0,
+          bottom: 0,
+          width: 240,
+          flexShrink: 0,
+          background: "var(--bg-elevated)",
+          borderRight: "1px solid var(--glass-border)",
+          display: "flex",
+          flexDirection: "column",
+          padding: "16px 12px",
+          gap: "4px",
+          zIndex: 200,
+          transform: open ? "translateX(0)" : "translateX(-100%)",
+          transition: "transform 0.22s ease",
+          boxShadow: open ? "4px 0 24px rgba(43, 45, 66, 0.12)" : "none",
+        }}
+      >
       <div
         style={{
           fontSize: "10px",
@@ -78,6 +104,7 @@ export default function Sidebar({ active = "dashboard" }: Props) {
             disabled={!enabled}
             onClick={() => {
               if (enabled) router.push(href);
+              onClose();
             }}
             style={{
               display: "flex",
@@ -147,12 +174,7 @@ export default function Sidebar({ active = "dashboard" }: Props) {
           Demo data · not live feeds
         </div>
       </div>
-
-      <style>{`
-        @media (max-width: 768px) {
-          .sidebar-label { display: none; }
-        }
-      `}</style>
-    </aside>
+      </aside>
+    </>
   );
 }

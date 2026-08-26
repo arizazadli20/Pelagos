@@ -22,6 +22,7 @@ export default function AppShell({ active, children }: Props) {
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
   const [userName, setUserName] = useState("Operator");
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     syncAuthCookie();
@@ -45,9 +46,14 @@ export default function AppShell({ active, children }: Props) {
     <IncidentStoreProvider>
       {!mounted || !isAuthenticated() ? null : (
         <div className="dashboard-shell">
-          <Header onLogout={handleLogout} userName={userName} userRole="Admin" />
+          <Header
+            onLogout={handleLogout}
+            onMenuClick={() => setSidebarOpen((v) => !v)}
+            userName={userName}
+            userRole="Admin"
+          />
           <div className="dashboard-body">
-            <Sidebar active={active} />
+            <Sidebar active={active} open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
             <main className="dashboard-main">{children}</main>
           </div>
         </div>
