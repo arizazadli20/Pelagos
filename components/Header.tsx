@@ -1,10 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { User, LogOut } from "lucide-react";
+import { User, LogOut, Menu } from "lucide-react";
 
 type Props = {
   onLogout?: () => void;
+  onMenuClick?: () => void;
   userName?: string;
   userRole?: string;
 };
@@ -52,6 +53,7 @@ function LiveClock() {
 
 export default function Header({
   onLogout,
+  onMenuClick,
   userName = "Operator",
   userRole = "Admin",
 }: Props) {
@@ -70,8 +72,39 @@ export default function Header({
         zIndex: 50,
       }}
     >
-      {/* Left — Brand */}
+      {/* Left — Menu toggle + Brand */}
       <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+        {onMenuClick && (
+          <button
+            type="button"
+            title="Toggle navigation"
+            aria-label="Toggle navigation"
+            onClick={onMenuClick}
+            style={{
+              width: 34,
+              height: 34,
+              borderRadius: 8,
+              border: "1px solid var(--glass-border)",
+              background: "transparent",
+              color: "var(--text-secondary)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              cursor: "pointer",
+              flexShrink: 0,
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.color = "var(--text-primary)";
+              e.currentTarget.style.background = "var(--glass-bg-hover)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.color = "var(--text-secondary)";
+              e.currentTarget.style.background = "transparent";
+            }}
+          >
+            <Menu size={17} strokeWidth={2} />
+          </button>
+        )}
         <img
           src="/logo-icon.png"
           alt="Pelagos"

@@ -25,7 +25,6 @@
   --color-low: #A8DADC;
   --color-info: #81B29A;
 
-  --sidebar-width: 220px;
   --header-height: 64px;
 
   /* Auth screen aliases */
@@ -372,16 +371,17 @@ html, body {
 
   .dashboard-map-row {
     flex-direction: column;
+    flex: none;
+    min-height: 0;
   }
 
   .dashboard-weather-panel {
     width: 100%;
+    min-height: 280px;
   }
 }
 
 @media (max-width: 768px) {
-  :root { --sidebar-width: 64px; }
-
   .dashboard-map-wrap {
     min-height: 320px;
   }
