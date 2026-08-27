@@ -85,7 +85,7 @@ export default function ResourceStatusWidget({ resources }: Props) {
           </div>
         </div>
         {expanded && (
-          <div style={{ padding: "8px", background: "rgba(0,0,0,0.2)", borderRadius: "0 0 6px 6px", marginTop: "-4px" }}>
+          <div style={{ padding: "8px", background: "var(--surface-muted)", borderRadius: "0 0 6px 6px", marginTop: "-4px" }}>
             {resources.teams.map(t => (
               <div key={t.id} style={{ display: "flex", justifyContent: "space-between", fontSize: "11px", padding: "4px 0" }}>
                 <span style={{ color: "var(--text-primary)" }}>{t.name}</span>

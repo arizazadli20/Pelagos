@@ -125,7 +125,10 @@ function VesselsContent() {
                 gap: 8,
                 padding: "10px 16px",
                 borderBottom: "1px solid var(--glass-border)",
-                background: "rgba(0,0,0,0.18)",
+                background: "var(--card-surface)",
+                position: "sticky",
+                top: 0,
+                zIndex: 1,
                 minWidth: 960,
                 fontSize: 10,
                 fontWeight: 600,
@@ -159,7 +162,15 @@ function VesselsContent() {
                 <div
                   key={v.id}
                   className="row-hover"
+                  role="button"
+                  tabIndex={0}
                   onClick={() => setSelected(v)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      setSelected(v);
+                    }
+                  }}
                   style={{
                     display: "grid",
                     gridTemplateColumns: "1.3fr 100px 100px 1.1fr 70px 80px 1fr 100px",
@@ -234,7 +245,7 @@ function VesselsContent() {
                 padding: 12,
                 borderRadius: 8,
                 border: "1px solid var(--glass-border)",
-                background: "rgba(0,0,0,0.2)",
+                background: "var(--surface-muted)",
               }}
             >
               <div style={{ fontSize: 11, fontWeight: 600, color: "var(--text-secondary)", marginBottom: 8 }}>

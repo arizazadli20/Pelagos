@@ -144,12 +144,12 @@ const actionBtnStyle = (variant: "primary" | "danger" | "neutral" | "warn"): Rea
       background: "var(--accent-soft)",
     },
     danger: {
-      color: "#C1503A",
+      color: "var(--color-high-text)",
       border: "1px solid rgba(224,122,95,0.3)",
       background: "rgba(224,122,95,0.1)",
     },
     warn: {
-      color: "#9C7A1D",
+      color: "var(--color-med-text)",
       border: "1px solid rgba(233,196,106,0.3)",
       background: "rgba(233,196,106,0.1)",
     },
@@ -317,7 +317,7 @@ export default function IncidentDetailsPanel({ incident, onClose }: Props) {
                 lineHeight: 1.45,
               }}
             >
-              <strong style={{ color: "#9C7A1D" }}>Human review required.</strong>
+              <strong style={{ color: "var(--color-med-text)" }}>Human review required.</strong>
               <br />
               AI provides analysis and recommendations. Final operational decisions are made by
               human experts.

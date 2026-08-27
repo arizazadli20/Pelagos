@@ -45,14 +45,14 @@ function AiAnalysisContent() {
           style={{
             padding: "12px 14px",
             borderRadius: 10,
-            border: "1px solid rgba(245,158,11,0.3)",
-            background: "rgba(245,158,11,0.08)",
+            border: "1px solid rgba(233,196,106,0.3)",
+            background: "rgba(233,196,106,0.08)",
             fontSize: 13,
             color: "var(--text-secondary)",
             lineHeight: 1.5,
           }}
         >
-          <strong style={{ color: "#fbbf24" }}>Human review required.</strong>{" "}
+          <strong style={{ color: "var(--color-med-text)" }}>Human review required.</strong>{" "}
           AI analysis supports the operator&apos;s decision. It does not make the final operational
           decision.
         </div>
@@ -96,7 +96,7 @@ function AiAnalysisContent() {
                   border: "1px solid var(--glass-border)",
                   borderRadius: 10,
                   padding: 16,
-                  background: "rgba(0,0,0,0.15)",
+                  background: "var(--surface-muted)",
                   cursor: "pointer",
                 }}
                 onClick={() => setSelectedId(a.incidentId)}

@@ -14,6 +14,10 @@
   --glass-border: #E6E2DA;
   --glass-border-light: rgba(108, 117, 125, 0.22);
 
+  /* Nested/recessed surfaces (cards-on-cards, notice boxes, pills) */
+  --surface-muted: rgba(230, 226, 218, 0.4);
+  --surface-muted-hover: rgba(230, 226, 218, 0.65);
+
   /* Accent */
   --accent: #81B29A;
   --accent-soft: rgba(129, 178, 154, 0.12);
@@ -24,6 +28,12 @@
   --color-med: #E9C46A;
   --color-low: #A8DADC;
   --color-info: #81B29A;
+
+  /* Darkened, readable variants for text set directly on light surfaces
+     (badges/pills use the base --color-* at low-opacity backgrounds instead) */
+  --color-high-text: #C1503A;
+  --color-med-text: #9C7A1D;
+  --color-low-text: #3E7E82;
 
   --header-height: 64px;
 
@@ -166,17 +176,17 @@ html, body {
 }
 .pill-high {
   background: rgba(224, 122, 95, 0.12);
-  color: #C1503A;
+  color: var(--color-high-text);
   border-color: rgba(224, 122, 95, 0.28);
 }
 .pill-medium {
   background: rgba(233, 196, 106, 0.16);
-  color: #9C7A1D;
+  color: var(--color-med-text);
   border-color: rgba(233, 196, 106, 0.32);
 }
 .pill-low {
   background: rgba(168, 218, 220, 0.2);
-  color: #3E7E82;
+  color: var(--color-low-text);
   border-color: rgba(168, 218, 220, 0.4);
 }
 .pill-detected,
@@ -188,7 +198,7 @@ html, body {
 .pill-confirmed,
 .pill-response {
   background: rgba(233, 196, 106, 0.16);
-  color: #9C7A1D;
+  color: var(--color-med-text);
   border-color: rgba(233, 196, 106, 0.32);
 }
 .pill-cleaning {
@@ -198,7 +208,7 @@ html, body {
 }
 .pill-resolved {
   background: rgba(168, 218, 220, 0.2);
-  color: #3E7E82;
+  color: var(--color-low-text);
   border-color: rgba(168, 218, 220, 0.4);
 }
 .pill-rejected {
@@ -206,8 +216,8 @@ html, body {
   color: var(--text-secondary);
   border-color: rgba(108, 117, 125, 0.28);
 }
-.pill-alert { background: rgba(233, 196, 106, 0.16); color: #9C7A1D; border-color: rgba(233, 196, 106, 0.32); }
-.pill-collected { background: rgba(168, 218, 220, 0.2); color: #3E7E82; border-color: rgba(168, 218, 220, 0.4); }
+.pill-alert { background: rgba(233, 196, 106, 0.16); color: var(--color-med-text); border-color: rgba(233, 196, 106, 0.32); }
+.pill-collected { background: rgba(168, 218, 220, 0.2); color: var(--color-low-text); border-color: rgba(168, 218, 220, 0.4); }
 .pill-converted { background: rgba(43, 45, 66, 0.04); color: var(--text-primary); border-color: var(--glass-border); }
 
 /* ── Row hover ── */

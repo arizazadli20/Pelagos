@@ -49,7 +49,7 @@ function ReportsContent() {
                 alignItems: "center",
                 gap: 8,
                 background: "var(--accent)",
-                color: "#062033",
+                color: "var(--bg-elevated)",
                 border: "none",
                 borderRadius: 8,
                 padding: "10px 14px",
