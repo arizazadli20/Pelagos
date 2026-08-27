@@ -265,6 +265,13 @@ html, body {
   display: flex;
   flex-direction: column;
   gap: 16px;
+  transition: margin-right 0.25s ease;
+}
+
+@media (min-width: 900px) {
+  .dashboard-scroll--panel-open {
+    margin-right: 480px;
+  }
 }
 
 .dashboard-map-wrap {
