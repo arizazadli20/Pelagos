@@ -178,13 +178,13 @@ export default function MapPanel({
 
     import("leaflet").then(({ default: L }) => {
       if (tileLayerRef.current) map.removeLayer(tileLayerRef.current);
-      const tileUrl =
-        mapTheme === "light"
-          ? "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
-          : "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png";
+      // CARTO's free anonymous basemap CDN (light_all/dark_all) now requires an
+      // API key for both themes, so fall back to OpenStreetMap's standard tiles
+      // (no key required). OSM only ships one style, so mapTheme is unused here.
+      const tileUrl = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
       tileLayerRef.current = L.tileLayer(tileUrl, {
-        maxZoom: 18,
-        attribution: "&copy; OpenStreetMap &copy; CARTO",
+        maxZoom: 19,
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
       }).addTo(map);
       tileLayerRef.current.bringToBack();
     });
