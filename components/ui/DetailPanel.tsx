@@ -19,17 +19,19 @@ export default function DetailPanel({
   children,
   width = 440,
 }: Props) {
-  if (!open) return null;
-
   return (
     <>
       <div
         onClick={onClose}
+        aria-hidden="true"
         style={{
           position: "fixed",
           inset: 0,
-          background: "rgba(0,0,0,0.45)",
+          background: "rgba(43, 45, 66, 0.18)",
           zIndex: 80,
+          opacity: open ? 1 : 0,
+          pointerEvents: open ? "auto" : "none",
+          transition: "opacity 0.22s ease",
         }}
       />
       <aside
@@ -48,7 +50,11 @@ export default function DetailPanel({
           zIndex: 90,
           display: "flex",
           flexDirection: "column",
-          boxShadow: "-12px 0 40px rgba(0,0,0,0.35)",
+          boxShadow: open ? "-12px 0 32px rgba(43, 45, 66, 0.14)" : "none",
+          transform: open ? "translateX(0px)" : "translateX(100%)",
+          transition: "transform 0.22s ease",
+          willChange: "transform",
+          visibility: open ? "visible" : "hidden",
         }}
       >
         <div
