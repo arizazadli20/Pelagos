@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import type L from "leaflet";
 import {
   CASPIAN_OVERVIEW,
   Incident,
@@ -25,7 +26,7 @@ function riskColor(risk: Incident["risk"]) {
   return "var(--color-low)";
 }
 
-function createSpillIcon(L: any, active: boolean) {
+function createSpillIcon(L: typeof import("leaflet"), active: boolean) {
   const size = active ? 12 : 10;
   const html = `
     <div style="position:relative;width:${size * 3.2}px;height:${size * 3.2}px;display:flex;align-items:center;justify-content:center;">
@@ -59,7 +60,7 @@ function createSpillIcon(L: any, active: boolean) {
   });
 }
 
-function createVesselIcon(L: any, heading: number) {
+function createVesselIcon(L: typeof import("leaflet"), heading: number) {
   const html = `
     <div style="
       width:14px;height:14px;
@@ -130,9 +131,9 @@ export default function MapPanel({
   onIncidentSelect,
 }: Props) {
   const mapRef = useRef<HTMLDivElement>(null);
-  const mapInst = useRef<any>(null);
-  const layersRef = useRef<any[]>([]);
-  const tileLayerRef = useRef<any>(null);
+  const mapInst = useRef<L.Map | null>(null);
+  const layersRef = useRef<(L.Marker | L.Circle)[]>([]);
+  const tileLayerRef = useRef<L.TileLayer | null>(null);
   const [loaded, setLoaded] = useState(false);
   const onSelectRef = useRef(onIncidentSelect);
   onSelectRef.current = onIncidentSelect;
