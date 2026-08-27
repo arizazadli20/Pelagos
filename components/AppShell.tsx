@@ -22,7 +22,7 @@ export default function AppShell({ active, children }: Props) {
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
   const [userName, setUserName] = useState("Operator");
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarExpanded, setSidebarExpanded] = useState(false);
 
   useEffect(() => {
     syncAuthCookie();
@@ -48,12 +48,12 @@ export default function AppShell({ active, children }: Props) {
         <div className="dashboard-shell">
           <Header
             onLogout={handleLogout}
-            onMenuClick={() => setSidebarOpen((v) => !v)}
+            onMenuClick={() => setSidebarExpanded((v) => !v)}
             userName={userName}
             userRole="Admin"
           />
           <div className="dashboard-body">
-            <Sidebar active={active} open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+            <Sidebar active={active} expanded={sidebarExpanded} />
             <main className="dashboard-main">{children}</main>
           </div>
         </div>
