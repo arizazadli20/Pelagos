@@ -71,8 +71,9 @@ export default function Sidebar({ active = "dashboard", open, onClose }: Props) 
           padding: "16px 12px",
           gap: "4px",
           zIndex: 200,
-          transform: open ? "translateX(0)" : "translateX(-100%)",
+          transform: open ? "translateX(0px)" : "translateX(-240px)",
           transition: "transform 0.22s ease",
+          willChange: "transform",
           boxShadow: open ? "4px 0 24px rgba(43, 45, 66, 0.12)" : "none",
         }}
       >

@@ -53,9 +53,9 @@ function ResponseContent() {
           subtitle="Operational response workflow from detection through human decision, cleanup and resolution."
         />
 
-        <div className="panel" style={{ padding: "20px 18px 16px" }}>
+        <div className="panel" style={{ padding: "20px 18px 16px", flexShrink: 0 }}>
           <div className="panel-title" style={{ marginBottom: 22 }}>Response workflow</div>
-          <div style={{ display: "flex", alignItems: "flex-start", overflowX: "auto", paddingBottom: 2 }}>
+          <div style={{ display: "flex", alignItems: "flex-start", overflowX: "auto", paddingBottom: 2, minHeight: 72 }}>
             {["Detection", "AI Analysis", "Human Decision", "Response", "Cleanup", "Resolution"].map(
               (step, i, arr) => (
                 <div
