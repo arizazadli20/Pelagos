@@ -53,35 +53,55 @@ function ResponseContent() {
           subtitle="Operational response workflow from detection through human decision, cleanup and resolution."
         />
 
-        <div className="panel" style={{ padding: "16px 18px" }}>
-          <div className="panel-title" style={{ marginBottom: 14 }}>Response workflow</div>
-          <div
-            style={{
-              display: "flex",
-              flexWrap: "wrap",
-              gap: 8,
-              alignItems: "center",
-              fontSize: 12,
-              color: "var(--text-secondary)",
-            }}
-          >
-            {["DETECTION", "AI ANALYSIS", "HUMAN DECISION", "RESPONSE", "CLEANUP", "RESOLUTION"].map(
+        <div className="panel" style={{ padding: "20px 18px 16px" }}>
+          <div className="panel-title" style={{ marginBottom: 22 }}>Response workflow</div>
+          <div style={{ display: "flex", alignItems: "flex-start", overflowX: "auto", paddingBottom: 2 }}>
+            {["Detection", "AI Analysis", "Human Decision", "Response", "Cleanup", "Resolution"].map(
               (step, i, arr) => (
-                <div key={step} style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <span
-                    style={{
-                      padding: "6px 10px",
-                      borderRadius: 6,
-                      border: "1px solid var(--glass-border)",
-                      background: "rgba(0,0,0,0.2)",
-                      color: "var(--text-primary)",
-                      fontWeight: 600,
-                      letterSpacing: "0.04em",
-                    }}
-                  >
-                    {step}
-                  </span>
-                  {i < arr.length - 1 && <span style={{ color: "var(--text-tertiary)" }}>→</span>}
+                <div
+                  key={step}
+                  style={{
+                    display: "flex",
+                    alignItems: "flex-start",
+                    flex: i < arr.length - 1 ? "1 1 0" : "0 0 auto",
+                  }}
+                >
+                  <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8, minWidth: 92 }}>
+                    <div
+                      style={{
+                        width: 28,
+                        height: 28,
+                        borderRadius: "50%",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        background: "var(--accent-soft)",
+                        border: "1.5px solid var(--accent)",
+                        color: "var(--accent)",
+                        fontSize: 12,
+                        fontWeight: 700,
+                        flexShrink: 0,
+                      }}
+                    >
+                      {i + 1}
+                    </div>
+                    <span
+                      style={{
+                        fontSize: 10,
+                        fontWeight: 600,
+                        letterSpacing: "0.05em",
+                        textTransform: "uppercase",
+                        color: "var(--text-secondary)",
+                        textAlign: "center",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {step}
+                    </span>
+                  </div>
+                  {i < arr.length - 1 && (
+                    <div style={{ flex: 1, minWidth: 24, height: 1.5, background: "var(--glass-border)", marginTop: 13 }} />
+                  )}
                 </div>
               )
             )}
@@ -132,7 +152,7 @@ function ResponseContent() {
                     onClick={() => setSelectedId(op.incidentId)}
                     style={{
                       textAlign: "left",
-                      background: "rgba(0,0,0,0.2)",
+                      background: "var(--surface-muted)",
                       border: "1px solid var(--glass-border)",
                       borderRadius: 8,
                       padding: 12,

@@ -40,21 +40,22 @@ export default function Sidebar({ active = "dashboard", open, onClose }: Props) 
 
   return (
     <>
-      {open && (
-        <div
-          onClick={onClose}
-          aria-hidden="true"
-          style={{
-            position: "fixed",
-            top: "var(--header-height)",
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: "rgba(43, 45, 66, 0.35)",
-            zIndex: 199,
-          }}
-        />
-      )}
+      <div
+        onClick={onClose}
+        aria-hidden="true"
+        style={{
+          position: "fixed",
+          top: "var(--header-height)",
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: "rgba(43, 45, 66, 0.35)",
+          zIndex: 199,
+          opacity: open ? 1 : 0,
+          pointerEvents: open ? "auto" : "none",
+          transition: "opacity 0.22s ease",
+        }}
+      />
       <aside
         style={{
           position: "fixed",
@@ -151,7 +152,7 @@ export default function Sidebar({ active = "dashboard", open, onClose }: Props) 
         style={{
           padding: "12px",
           borderRadius: "8px",
-          background: "rgba(0,0,0,0.2)",
+          background: "var(--surface-muted)",
           border: "1px solid var(--glass-border)",
         }}
       >

@@ -274,6 +274,8 @@ function IncidentsContent() {
               <div
                 key={inc.id}
                 className="row-hover"
+                role="button"
+                tabIndex={0}
                 style={{
                   display: "grid",
                   gridTemplateColumns: "70px 1.4fr 1.2fr 90px 80px 110px 90px 90px",
@@ -286,6 +288,12 @@ function IncidentsContent() {
                   cursor: "pointer",
                 }}
                 onClick={() => openIncident(inc)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    openIncident(inc);
+                  }
+                }}
               >
                 <span style={{ fontSize: 12, fontWeight: 600, fontFamily: "ui-monospace, monospace", color: "var(--accent)" }}>
                   {inc.displayId}

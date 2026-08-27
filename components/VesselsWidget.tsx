@@ -97,7 +97,7 @@ export default function VesselsWidget({ vessels, port }: Props) {
         gridTemplateColumns: "1fr 50px 46px 44px 80px",
         padding: "10px 16px",
         borderBottom: "1px solid var(--glass-border)",
-        background: "rgba(0,0,0,0.1)",
+        background: "var(--surface-muted)",
       }}>
         {["Vessel", "Dist", "Spd", "Hdg", "Status"].map(h => (
           <span key={h} style={{ fontSize: "10px", color: "var(--text-tertiary)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em" }}>
@@ -204,7 +204,7 @@ export default function VesselsWidget({ vessels, port }: Props) {
       <div style={{
         padding: "10px 16px",
         borderTop: "1px solid var(--glass-border)",
-        background: "rgba(0,0,0,0.1)",
+        background: "var(--surface-muted)",
         fontSize: "10px",
         color: "var(--text-tertiary)",
         display: "flex",

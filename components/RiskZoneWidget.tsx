@@ -68,7 +68,7 @@ export default function RiskZoneWidget({ detections }: Props) {
   return (
     <div style={{ height: "100%", display: "flex", flexDirection: "column", padding: "8px 4px" }}>
       {/* Custom Tabs */}
-      <div style={{ display: "flex", gap: "2px", background: "rgba(0,0,0,0.2)", padding: "2px", borderRadius: "6px", margin: "0 16px 8px" }}>
+      <div style={{ display: "flex", gap: "2px", background: "var(--surface-muted)", padding: "2px", borderRadius: "6px", margin: "0 16px 8px" }}>
         <button
           onClick={() => setActiveTab("distribution")}
           style={{
