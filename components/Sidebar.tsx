@@ -28,55 +28,33 @@ const NAV: NavItem[] = [
   { id: "account", label: "Account", icon: <UserCircle size={18} strokeWidth={1.75} /> },
 ];
 
+const COLLAPSED_WIDTH = 64;
+const EXPANDED_WIDTH = 240;
+
 type Props = {
   active?: NavId;
-  open: boolean;
-  onClose: () => void;
+  expanded: boolean;
 };
 
-export default function Sidebar({ active = "dashboard", open, onClose }: Props) {
+export default function Sidebar({ active = "dashboard", expanded }: Props) {
   const router = useRouter();
   const pathname = usePathname();
 
   return (
-    <>
-      <div
-        onClick={onClose}
-        aria-hidden="true"
-        style={{
-          position: "fixed",
-          top: "var(--header-height)",
-          left: 0,
-          right: 0,
-          bottom: 0,
-          background: "rgba(43, 45, 66, 0.35)",
-          zIndex: 199,
-          opacity: open ? 1 : 0,
-          pointerEvents: open ? "auto" : "none",
-          transition: "opacity 0.22s ease",
-        }}
-      />
-      <aside
-        style={{
-          position: "fixed",
-          top: "var(--header-height)",
-          left: 0,
-          bottom: 0,
-          width: 240,
-          flexShrink: 0,
-          background: "var(--bg-elevated)",
-          borderRight: "1px solid var(--glass-border)",
-          display: "flex",
-          flexDirection: "column",
-          padding: "16px 12px",
-          gap: "4px",
-          zIndex: 200,
-          transform: open ? "translateX(0px)" : "translateX(-240px)",
-          transition: "transform 0.22s ease",
-          willChange: "transform",
-          boxShadow: open ? "4px 0 24px rgba(43, 45, 66, 0.12)" : "none",
-        }}
-      >
+    <aside
+      style={{
+        width: expanded ? EXPANDED_WIDTH : COLLAPSED_WIDTH,
+        flexShrink: 0,
+        background: "var(--bg-elevated)",
+        borderRight: "1px solid var(--glass-border)",
+        display: "flex",
+        flexDirection: "column",
+        padding: "16px 12px",
+        gap: "4px",
+        overflow: "hidden",
+        transition: "width 0.2s ease",
+      }}
+    >
       <div
         style={{
           fontSize: "10px",
@@ -85,6 +63,9 @@ export default function Sidebar({ active = "dashboard", open, onClose }: Props) 
           textTransform: "uppercase",
           color: "var(--text-tertiary)",
           padding: "4px 12px 12px",
+          whiteSpace: "nowrap",
+          opacity: expanded ? 1 : 0,
+          transition: "opacity 0.15s ease",
         }}
       >
         Navigation
@@ -106,14 +87,14 @@ export default function Sidebar({ active = "dashboard", open, onClose }: Props) 
             disabled={!enabled}
             onClick={() => {
               if (enabled) router.push(href);
-              onClose();
             }}
             style={{
               display: "flex",
               alignItems: "center",
+              justifyContent: expanded ? "flex-start" : "center",
               gap: "12px",
               width: "100%",
-              padding: "10px 12px",
+              padding: expanded ? "10px 12px" : "10px",
               borderRadius: "8px",
               border: "1px solid",
               borderColor: isActive ? "rgba(56, 189, 248, 0.25)" : "transparent",
@@ -142,41 +123,44 @@ export default function Sidebar({ active = "dashboard", open, onClose }: Props) 
             <span style={{ display: "flex", flexShrink: 0, opacity: isActive ? 1 : 0.85 }}>
               {item.icon}
             </span>
-            <span className="sidebar-label">{item.label}</span>
+            {expanded && (
+              <span style={{ whiteSpace: "nowrap" }}>{item.label}</span>
+            )}
           </button>
         );
       })}
 
       <div style={{ flex: 1 }} />
 
-      <div
-        style={{
-          padding: "12px",
-          borderRadius: "8px",
-          background: "var(--surface-muted)",
-          border: "1px solid var(--glass-border)",
-        }}
-      >
+      {expanded && (
         <div
           style={{
-            fontSize: "10px",
-            fontWeight: 600,
-            letterSpacing: "0.08em",
-            textTransform: "uppercase",
-            color: "var(--text-tertiary)",
-            marginBottom: "6px",
+            padding: "12px",
+            borderRadius: "8px",
+            background: "var(--surface-muted)",
+            border: "1px solid var(--glass-border)",
           }}
         >
-          Monitoring
+          <div
+            style={{
+              fontSize: "10px",
+              fontWeight: 600,
+              letterSpacing: "0.08em",
+              textTransform: "uppercase",
+              color: "var(--text-tertiary)",
+              marginBottom: "6px",
+            }}
+          >
+            Monitoring
+          </div>
+          <div style={{ fontSize: "12px", color: "var(--text-secondary)", lineHeight: 1.45 }}>
+            Caspian Sea · Azerbaijan coastal corridor
+          </div>
+          <div style={{ fontSize: "10px", color: "var(--text-tertiary)", marginTop: 8 }}>
+            Demo data · not live feeds
+          </div>
         </div>
-        <div style={{ fontSize: "12px", color: "var(--text-secondary)", lineHeight: 1.45 }}>
-          Caspian Sea · Azerbaijan coastal corridor
-        </div>
-        <div style={{ fontSize: "10px", color: "var(--text-tertiary)", marginTop: 8 }}>
-          Demo data · not live feeds
-        </div>
-      </div>
-      </aside>
-    </>
+      )}
+    </aside>
   );
 }
