@@ -45,7 +45,7 @@ function DashboardContent() {
 
   return (
     <>
-      <div className="dashboard-scroll">
+      <div className={`dashboard-scroll${selected ? " dashboard-scroll--panel-open" : ""}`}>
         <div className="dashboard-map-row">
           <section className="dashboard-map-wrap" aria-label="Caspian Sea incident map">
             <MapPanel
