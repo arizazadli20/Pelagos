@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 /** Keep in sync with AUTH_COOKIE_NAME in lib/auth.ts */
-const AUTH_COOKIE_NAME = "pelagos-auth";
+const AUTH_COOKIE_NAME = "seaseatry-auth";
 
 const PROTECTED_PREFIXES = [
   "/dashboard",

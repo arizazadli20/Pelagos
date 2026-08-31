@@ -110,7 +110,7 @@ export default function Header({
         )}
         <img
           src="/logo-icon.png"
-          alt="Pelagos"
+          alt="SeaSeatry"
           style={{ width: 36, height: 36, objectFit: "contain", flexShrink: 0 }}
         />
         <div style={{ display: "flex", flexDirection: "column", lineHeight: 1.15 }}>
@@ -122,7 +122,7 @@ export default function Header({
               color: "var(--text-primary)",
             }}
           >
-            Pelagos
+            SeaSeatry
           </span>
           <span
             style={{
