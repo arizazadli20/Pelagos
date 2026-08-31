@@ -4,6 +4,8 @@
 
 Pelagos is a Next.js operational demo platform that helps operators detect, review, and respond to potential oil spills using satellite-oriented workflows and AI-assisted analysis. It provides a landing site, mock authentication, a maritime dashboard, and multi-page ops tools (incidents, vessels, AI analysis, response, reports) backed by centralized mock data designed to be replaced by real APIs later.
 
+> **By design, this project is a self-contained frontend demo.** It has no backend and no ML model, and none is planned — this is a deliberate product decision, not a gap to be filled later. All operational data is mocked to showcase the UI/UX end-to-end.
+
 ---
 
 ## Key Features
@@ -43,7 +45,7 @@ Pelagos is a Next.js operational demo platform that helps operators detect, revi
 | Lint | ESLint (`eslint-config-next`) |
 | Package manager | npm |
 
-**Not used in this repository (yet):** database, Docker / Compose, GraphQL, gRPC, or a required `.env` file for the main demo flow.
+**Not used in this repository, by design:** database, Docker / Compose, GraphQL, gRPC, backend service, ML model, or a required `.env` file for the main demo flow.
 
 ---
 
@@ -217,7 +219,7 @@ Operational pages are designed around:
 - `lib/mock-data.ts` — seed + derived helpers
 - `lib/incident-store.tsx` — client-side shared state / HITL mutations
 
-A future backend integration should keep those TypeScript shapes stable so UI pages can stay mostly unchanged.
+No backend is planned for this project — it stays a self-contained frontend demo. These shapes exist purely to keep the mock data typed and consistent across pages.
 
 ---
 
