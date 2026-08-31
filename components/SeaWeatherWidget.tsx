@@ -166,6 +166,7 @@ interface ColProps {
 function MetricCol({ icon, label, primaryValue, secondaryLabel, dirDeg, alertColor: acol, id }: ColProps) {
   const valueColor = acol ?? "var(--text-primary)";
   const arrowColor = acol ?? "var(--text-secondary)";
+  const iconColor = acol ?? "var(--color-med)";
 
   return (
     <div
@@ -176,8 +177,8 @@ function MetricCol({ icon, label, primaryValue, secondaryLabel, dirDeg, alertCol
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
-        padding: "12px 8px",
-        borderRadius: "8px",
+        padding: "18px 10px",
+        borderRadius: "10px",
         /* subtle highlight when hazard detected */
         background: acol ? `${acol}0d` : "rgba(43,45,66,0.03)",
         border: `1px solid ${acol ? `${acol}33` : "var(--glass-border)"}`,
@@ -185,24 +186,24 @@ function MetricCol({ icon, label, primaryValue, secondaryLabel, dirDeg, alertCol
         minHeight: "0",
       }}
     >
-      {/* Column icon + label */}
-      <div style={{ display: "flex", alignItems: "center", gap: "5px", color: "var(--text-secondary)" }}>
-        <div style={{ display: "flex", opacity: 0.7, color: acol ?? "var(--text-secondary)" }}>{icon}</div>
-        <span style={{
-          fontSize: "10px",
-          fontWeight: 600,
-          textTransform: "uppercase",
-          letterSpacing: "0.07em",
-          color: "var(--text-secondary)",
-        }}>{label}</span>
-      </div>
+      {/* Column icon */}
+      <div style={{ display: "flex", color: iconColor }}>{icon}</div>
+
+      {/* Label */}
+      <span style={{
+        fontSize: "10px",
+        fontWeight: 600,
+        textTransform: "uppercase",
+        letterSpacing: "0.07em",
+        color: "var(--text-secondary)",
+      }}>{label}</span>
 
       {/* Directional arrow */}
-      <DirArrow deg={dirDeg} size={22} color={arrowColor} />
+      <DirArrow deg={dirDeg} size={24} color={arrowColor} />
 
       {/* Primary value */}
       <div style={{
-        fontSize: "26px",
+        fontSize: "32px",
         fontWeight: 300,
         color: valueColor,
         lineHeight: 1,
@@ -220,7 +221,7 @@ function MetricCol({ icon, label, primaryValue, secondaryLabel, dirDeg, alertCol
 
       {/* Secondary value / direction label */}
       <div style={{
-        fontSize: "11px",
+        fontSize: "12px",
         color: "var(--text-secondary)",
         textAlign: "center",
         lineHeight: 1.4,
@@ -246,11 +247,11 @@ function SkeletonCol() {
       background: "rgba(43,45,66,0.03)",
       border: "1px solid var(--glass-border)",
     }}>
-      <Skeleton w="48px" h="10px" />
-      <Skeleton w="20px" h="20px" />
-      <Skeleton w="64px" h="26px" />
-      <Skeleton w="56px" h="10px" />
-      <Skeleton w="40px" h="10px" />
+      <Skeleton w="26px" h="26px" />
+      <Skeleton w="48px" h="11px" />
+      <Skeleton w="24px" h="24px" />
+      <Skeleton w="72px" h="32px" />
+      <Skeleton w="56px" h="12px" />
     </div>
   );
 }
@@ -402,7 +403,7 @@ export default function SeaWeatherWidget({ port }: Props) {
               {/* Wind column */}
               <MetricCol
                 id="sea-weather-wind"
-                icon={<Wind size={13} />}
+                icon={<Wind size={26} />}
                 label="Wind"
                 primaryValue={`${data.windSpeedKt.toFixed(1)} kt`}
                 dirDeg={data.windDir}
@@ -413,7 +414,7 @@ export default function SeaWeatherWidget({ port }: Props) {
               {/* Waves column */}
               <MetricCol
                 id="sea-weather-waves"
-                icon={<Waves size={13} />}
+                icon={<Waves size={26} />}
                 label="Waves"
                 primaryValue={`${data.waveHeightM.toFixed(1)} m`}
                 dirDeg={data.waveDir}
@@ -424,7 +425,7 @@ export default function SeaWeatherWidget({ port }: Props) {
               {/* Currents column */}
               <MetricCol
                 id="sea-weather-current"
-                icon={<Navigation2 size={13} />}
+                icon={<Navigation2 size={26} />}
                 label="Current"
                 primaryValue={`${data.currentKt.toFixed(2)} kt`}
                 dirDeg={data.currentDir}
