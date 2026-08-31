@@ -45,7 +45,7 @@ const STEPS = [
   {
     n: "04",
     title: "Respond",
-    text: "Cleanup and response activities can be coordinated and tracked through completion.",
+    text: "Sorbent material is calculated from the estimated oil volume and deployed to clean up the spill, tracked through completion.",
   },
 ];
 

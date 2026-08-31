@@ -10,6 +10,7 @@ import ActivityFeed from "@/components/ActivityFeed";
 import SeaWeatherWidget from "@/components/SeaWeatherWidget";
 import IncidentDetailsPanel from "@/components/incidents/IncidentDetailsPanel";
 import { useIncidentStore, LIVE_INCIDENT_ID } from "@/lib/incident-store";
+import { useSpillSourceEstimate } from "@/lib/useSpillSourceEstimate";
 import { mockData } from "@/lib/mock-data";
 import type { Incident } from "@/lib/types";
 
@@ -38,6 +39,15 @@ function DashboardContent() {
     setSelected(inc);
   };
 
+  const liveIncident = hasLiveIncident
+    ? incidents.find((i) => i.id === LIVE_INCIDENT_ID) ?? null
+    : null;
+  const { estimate: liveEstimate } = useSpillSourceEstimate(liveIncident);
+  const { estimate: selectedEstimate } = useSpillSourceEstimate(selected);
+  const sourceEstimates: Record<string, ReturnType<typeof useSpillSourceEstimate>["estimate"]> = {};
+  if (liveIncident) sourceEstimates[liveIncident.id] = liveEstimate;
+  if (selected) sourceEstimates[selected.id] = selectedEstimate;
+
   const mapVessels = vessels.map((v) => ({
     id: v.id,
     name: v.name,
@@ -64,6 +74,8 @@ function DashboardContent() {
               riskZones={riskZones}
               activeMapCoords={activeMapCoords}
               liveIncidentId={hasLiveIncident ? LIVE_INCIDENT_ID : null}
+              focusedIncidentId={selected?.id ?? null}
+              sourceEstimates={sourceEstimates}
               onIncidentSelect={handleIncidentSelect}
             />
           </section>
