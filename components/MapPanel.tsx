@@ -17,6 +17,7 @@ type Props = {
   riskZones: RiskZone[];
   activeMapCoords?: [number, number] | null;
   mapTheme?: "dark" | "light";
+  liveIncidentId?: string | null;
   onIncidentSelect?: (incident: Incident) => void;
 };
 
@@ -26,8 +27,10 @@ function riskColor(risk: Incident["risk"]) {
   return "var(--color-low)";
 }
 
-function createSpillIcon(L: typeof import("leaflet"), active: boolean) {
+function createSpillIcon(L: typeof import("leaflet"), active: boolean, isLive: boolean) {
   const size = active ? 12 : 10;
+  const dotColor = isLive ? "#B91C1C" : "var(--color-high)";
+  const ringColor = isLive ? "rgba(185,28,28,0.55)" : "rgba(224,122,95,0.45)";
   const html = `
     <div style="position:relative;width:${size * 3.2}px;height:${size * 3.2}px;display:flex;align-items:center;justify-content:center;">
       ${
@@ -36,7 +39,7 @@ function createSpillIcon(L: typeof import("leaflet"), active: boolean) {
               position:absolute;top:50%;left:50%;
               width:${size * 2.8}px;height:${size * 2.8}px;
               border-radius:50%;
-              border:1px solid rgba(224,122,95,0.45);
+              border:1px solid ${ringColor};
               transform:translate(-50%,-50%);
               animation:markerRing 2s ease-out infinite;
             "></div>`
@@ -45,7 +48,7 @@ function createSpillIcon(L: typeof import("leaflet"), active: boolean) {
       <div style="
         width:${size}px;height:${size}px;
         border-radius:50%;
-        background:var(--color-high);
+        background:${dotColor};
         border:2px solid var(--bg-elevated);
         box-shadow:0 1px 4px rgba(43,45,66,0.35);
         ${active ? "animation:markerPulse 2s ease-out infinite;" : ""}
@@ -128,6 +131,7 @@ export default function MapPanel({
   riskZones,
   activeMapCoords,
   mapTheme = "light",
+  liveIncidentId,
   onIncidentSelect,
 }: Props) {
   const mapRef = useRef<HTMLDivElement>(null);
@@ -217,7 +221,11 @@ export default function MapPanel({
       incidents.forEach((inc, idx) => {
         const active = idx === 0 || inc.status === "detected" || inc.status === "under_review";
         const marker = L.marker([inc.lat, inc.lng], {
-          icon: createSpillIcon(L, active && inc.status !== "resolved" && inc.status !== "rejected"),
+          icon: createSpillIcon(
+            L,
+            active && inc.status !== "resolved" && inc.status !== "rejected",
+            inc.id === liveIncidentId
+          ),
           zIndexOffset: 600,
         });
         const popup = L.popup({ maxWidth: 300, minWidth: 250 }).setContent(makeIncidentPopup(inc));
@@ -251,7 +259,7 @@ export default function MapPanel({
         layersRef.current.push(marker);
       });
     });
-  }, [incidents, vessels, riskZones, loaded]);
+  }, [incidents, vessels, riskZones, loaded, liveIncidentId]);
 
   useEffect(() => {
     if (activeMapCoords && mapInst.current && loaded) {

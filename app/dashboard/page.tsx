@@ -23,7 +23,7 @@ export default function DashboardPage() {
 
 function DashboardContent() {
   const router = useRouter();
-  const { incidents, vessels, riskZones, activity, kpis } = useIncidentStore();
+  const { incidents, vessels, riskZones, activity, kpis, hasLiveIncident } = useIncidentStore();
   const [activeMapCoords, setActiveMapCoords] = useState<[number, number] | null>(null);
   const [selected, setSelected] = useState<Incident | null>(null);
   const [weatherPortId, setWeatherPortId] = useState(mockData.ports[0].id);
@@ -63,6 +63,7 @@ function DashboardContent() {
               vessels={mapVessels}
               riskZones={riskZones}
               activeMapCoords={activeMapCoords}
+              liveIncidentId={hasLiveIncident ? LIVE_INCIDENT_ID : null}
               onIncidentSelect={handleIncidentSelect}
             />
           </section>
