@@ -9,6 +9,10 @@ type Props = {
   onClose: () => void;
   children: React.ReactNode;
   width?: number | string;
+  /** "side" (default) slides in from the right edge. "center" opens as a
+   * centered mini-window, used for the guided demo flow (map → incident →
+   * AI analysis). */
+  variant?: "side" | "center";
 };
 
 export default function DetailPanel({
@@ -18,7 +22,10 @@ export default function DetailPanel({
   onClose,
   children,
   width = 440,
+  variant = "side",
 }: Props) {
+  const centered = variant === "center";
+
   return (
     <>
       <div
@@ -27,7 +34,7 @@ export default function DetailPanel({
         style={{
           position: "fixed",
           inset: 0,
-          background: "rgba(43, 45, 66, 0.18)",
+          background: centered ? "rgba(43, 45, 66, 0.32)" : "rgba(43, 45, 66, 0.18)",
           zIndex: 80,
           opacity: open ? 1 : 0,
           pointerEvents: open ? "auto" : "none",
@@ -38,24 +45,49 @@ export default function DetailPanel({
         role="dialog"
         aria-modal="true"
         aria-label={title}
-        style={{
-          position: "fixed",
-          top: 0,
-          right: 0,
-          height: "100vh",
-          width,
-          maxWidth: "100vw",
-          background: "var(--bg-elevated)",
-          borderLeft: "1px solid var(--glass-border)",
-          zIndex: 90,
-          display: "flex",
-          flexDirection: "column",
-          boxShadow: open ? "-12px 0 32px rgba(43, 45, 66, 0.14)" : "none",
-          transform: open ? "translateX(0px)" : "translateX(100%)",
-          transition: "transform 0.22s ease",
-          willChange: "transform",
-          visibility: open ? "visible" : "hidden",
-        }}
+        style={
+          centered
+            ? {
+                position: "fixed",
+                top: "50%",
+                left: "50%",
+                maxHeight: "88vh",
+                width,
+                maxWidth: "94vw",
+                background: "var(--bg-elevated)",
+                border: "1px solid var(--glass-border)",
+                borderRadius: 16,
+                zIndex: 90,
+                display: "flex",
+                flexDirection: "column",
+                boxShadow: "0 24px 64px rgba(43, 45, 66, 0.28)",
+                transform: open
+                  ? "translate(-50%, -50%) scale(1)"
+                  : "translate(-50%, -50%) scale(0.94)",
+                opacity: open ? 1 : 0,
+                transition: "transform 0.22s ease, opacity 0.22s ease",
+                willChange: "transform, opacity",
+                visibility: open ? "visible" : "hidden",
+              }
+            : {
+                position: "fixed",
+                top: 0,
+                right: 0,
+                height: "100vh",
+                width,
+                maxWidth: "100vw",
+                background: "var(--bg-elevated)",
+                borderLeft: "1px solid var(--glass-border)",
+                zIndex: 90,
+                display: "flex",
+                flexDirection: "column",
+                boxShadow: open ? "-12px 0 32px rgba(43, 45, 66, 0.14)" : "none",
+                transform: open ? "translateX(0px)" : "translateX(100%)",
+                transition: "transform 0.22s ease",
+                willChange: "transform",
+                visibility: open ? "visible" : "hidden",
+              }
+        }
       >
         <div
           style={{
@@ -112,7 +144,7 @@ export default function DetailPanel({
             <X size={16} />
           </button>
         </div>
-        <div style={{ flex: 1, overflowY: "auto", padding: 20 }}>{children}</div>
+        <div style={{ flex: 1, overflowY: "auto", padding: 20, minHeight: 0 }}>{children}</div>
       </aside>
     </>
   );

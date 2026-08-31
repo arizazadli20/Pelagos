@@ -156,14 +156,11 @@ export default function Header({
             display: "flex",
             alignItems: "center",
             gap: 8,
-            padding: "6px 12px",
+            padding: "6px 14px",
             borderRadius: 20,
-            background: hasLiveIncident
-              ? "rgba(224, 122, 95, 0.12)"
-              : "rgba(34, 197, 94, 0.08)",
-            border: hasLiveIncident
-              ? "1px solid rgba(224, 122, 95, 0.35)"
-              : "1px solid rgba(34, 197, 94, 0.22)",
+            background: hasLiveIncident ? "#B91C1C" : "rgba(34, 197, 94, 0.08)",
+            border: hasLiveIncident ? "1px solid #7F1D1D" : "1px solid rgba(34, 197, 94, 0.22)",
+            boxShadow: hasLiveIncident ? "0 2px 10px rgba(185, 28, 28, 0.45)" : "none",
             cursor: hasLiveIncident ? "default" : "pointer",
             fontFamily: "inherit",
           }}
@@ -174,17 +171,17 @@ export default function Header({
               width: 7,
               height: 7,
               borderRadius: "50%",
-              background: hasLiveIncident ? "var(--color-high)" : "var(--color-low)",
+              background: hasLiveIncident ? "#FFFFFF" : "var(--color-low)",
               flexShrink: 0,
             }}
           />
           <span
             style={{
               fontSize: 11,
-              fontWeight: 600,
+              fontWeight: 700,
               letterSpacing: "0.07em",
               textTransform: "uppercase",
-              color: hasLiveIncident ? "var(--color-high)" : "var(--color-low)",
+              color: hasLiveIncident ? "#FFFFFF" : "var(--color-low)",
             }}
           >
             {hasLiveIncident ? "Incident Active" : "System Online"}

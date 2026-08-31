@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import AppShell from "@/components/AppShell";
 import PageHeader from "@/components/ui/PageHeader";
 import StatCard from "@/components/ui/StatCard";
@@ -15,15 +16,27 @@ import { Brain, Percent, Maximize2, Clock } from "lucide-react";
 export default function AiAnalysisPage() {
   return (
     <AppShell active="ai">
-      <AiAnalysisContent />
+      <Suspense fallback={null}>
+        <AiAnalysisContent />
+      </Suspense>
     </AppShell>
   );
 }
 
 function AiAnalysisContent() {
   const { aiAnalyses, getIncidentById } = useIncidentStore();
+  const searchParams = useSearchParams();
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [wide, setWide] = useState(false);
   const selected = selectedId ? getIncidentById(selectedId) || null : null;
+
+  useEffect(() => {
+    const openId = searchParams.get("open");
+    if (openId) {
+      setSelectedId(openId);
+      setWide(searchParams.get("wide") === "1");
+    }
+  }, [searchParams]);
 
   const avgProb =
     aiAnalyses.length === 0
@@ -142,6 +155,7 @@ function AiAnalysisContent() {
       <IncidentDetailsPanel
         incident={selected as Incident | null}
         onClose={() => setSelectedId(null)}
+        wide={wide}
       />
 
       <style>{`
