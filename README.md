@@ -135,7 +135,7 @@ npm install
 
 No `.env` file is required for local development of the mock auth / mock data experience.
 
-> **Security note:** `app/api/copernicus-token/route.ts` currently contains Copernicus client credentials in source. Prefer moving those to environment variables before any shared or production deployment, and rotate any credentials that have been committed.
+> **Security note:** `app/api/copernicus-token/route.ts` reads credentials from `COPERNICUS_CLIENT_ID` / `COPERNICUS_CLIENT_SECRET` environment variables — copy `.env.example` to `.env.local` and never commit real values. `.env.local` is gitignored.
 
 ### Running the Application
 
@@ -230,6 +230,7 @@ The main app flow does **not** currently read `process.env` configuration.
 | *(none for mock demo)* | — | Landing, auth, dashboard, ops pages | Auth uses browser `localStorage` + the `pelagos-auth` cookie |
 | `COPERNICUS_CLIENT_ID` | Yes (for token route) | `/api/copernicus-token` | Copernicus CDSE client ID — copy `.env.example` to `.env.local` |
 | `COPERNICUS_CLIENT_SECRET` | Yes (for token route) | `/api/copernicus-token` | Copernicus CDSE client secret — never commit real values |
+| `COPERNICUS_INSTANCE_ID` | Not yet | *(reserved)* | Sentinel Hub Configuration Instance ID — not consumed by any code yet, reserved for future SAR image fetching |
 
 Cookie / storage keys (not env vars, but important runtime identifiers):
 
