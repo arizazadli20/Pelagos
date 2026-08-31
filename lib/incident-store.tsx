@@ -36,7 +36,10 @@ function makeLiveIncident(): Incident {
     location: "Central Caspian Sea",
     lat: 40.0,
     lng: 50.4,
-    timestamp: new Date().toISOString(),
+    // Backdated a few hours so the wind-drift source estimate has a
+    // meaningful, visible distance immediately (a spill detected seconds
+    // ago hasn't drifted far enough to show on the map yet).
+    timestamp: new Date(Date.now() - 4 * 3_600_000).toISOString(),
     areaM2: 340,
     aiProbability: 0.88,
     risk: "HIGH",

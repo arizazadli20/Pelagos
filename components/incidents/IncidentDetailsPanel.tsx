@@ -10,7 +10,26 @@ import {
   getVesselById,
 } from "@/lib/mock-data";
 import type { Incident } from "@/lib/types";
-import { getWindContext, getSeaState, type WindContext, type SeaState } from "@/lib/weather";
+import {
+  hashString,
+  deriveAiImpact,
+  deriveResponseMaterials,
+  deriveProjectionSeries,
+  deriveSourceAttribution,
+  deriveResponseOptions,
+  deriveMethodComparison,
+  compassLabel,
+  SORBENT_RATIO_G,
+  type ResponseMaterials,
+} from "@/lib/spill-physics";
+import { useSpillSourceEstimate } from "@/lib/useSpillSourceEstimate";
+import {
+  ConfidenceGauges,
+  SpillProjectionChart,
+  SourceAttributionPie,
+  ResponseOptionsBar,
+  MethodComparisonBar,
+} from "@/components/incidents/IncidentCharts";
 import RiskBadge from "@/components/ui/RiskBadge";
 import StatusBadge from "@/components/ui/StatusBadge";
 import DetailPanel from "@/components/ui/DetailPanel";
@@ -32,54 +51,14 @@ import {
   ListChecks,
   DollarSign,
   Anchor,
+  Crosshair,
+  TrendingUp,
+  PieChart as PieChartIcon,
+  Scale,
 } from "lucide-react";
 
-const RESPONSE_TEAMS = ["Alpha Response", "Bravo Team", "Charlie Team", "Delta Team"];
-const COMPASS = ["N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE", "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW"];
-
-function hashString(s: string): number {
-  let h = 0;
-  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
-  return h;
-}
-
-/** Deterministic mock cleanup materials derived from the incident, so the
- * same incident always shows the same "used" quantities. */
-function deriveResponseMaterials(incident: Incident) {
-  const seed = hashString(incident.id);
-  const boomMeters = Math.round(incident.areaM2 * 0.35 + (seed % 40));
-  const sorbentKg = Math.round(incident.areaM2 * 0.6 + (seed % 60));
-  const skimmerUnits = 1 + (seed % 3);
-  const vesselCount = 1 + (seed % 2);
-  const estimatedCostUsd = Math.round(
-    boomMeters * 12 + sorbentKg * 4 + skimmerUnits * 1500 + vesselCount * 2200
-  );
-  return {
-    boomMeters,
-    sorbentKg,
-    skimmerUnits,
-    vesselCount,
-    team: RESPONSE_TEAMS[seed % RESPONSE_TEAMS.length],
-    durationHours: 3 + (seed % 6),
-    estimatedCostUsd,
-  };
-}
-
-/** Deterministic mock AI-derived impact estimates for the deep-dive view. */
-function deriveAiImpact(incident: Incident, windHeading?: number) {
-  const seed = hashString(incident.id + "-impact");
-  const heading = windHeading ?? seed % 360;
-  return {
-    volumeBbl: Math.max(1, Math.round(incident.areaM2 * 0.012 + (seed % 8))),
-    driftHeading: Math.round(heading),
-    driftCompass: COMPASS[Math.round(heading / 22.5) % 16],
-    driftKm24h: Math.round(2 + (seed % 9)),
-    modelVersion: `sar-slick-v${1 + (seed % 3)}.${seed % 10}`,
-  };
-}
-
 /** Deterministic mock confidence sub-scores + processing pipeline, shown only
- * in the dedicated AI Analysis deep-dive view. */
+ * in the expanded full-page view. */
 function deriveAiDeepDive(incident: Incident) {
   const seed = hashString(incident.id + "-deep");
   const texture = 72 + (seed % 24);
@@ -112,24 +91,7 @@ function findSimilarIncidents(incident: Incident, all: Incident[]) {
     }));
 }
 
-function ConfidenceBar({ label, value }: { label: string; value: number }) {
-  return (
-    <div>
-      <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, marginBottom: 4 }}>
-        <span style={{ color: "var(--text-secondary)" }}>{label}</span>
-        <span style={{ fontWeight: 600, color: "var(--text-primary)" }}>{value}%</span>
-      </div>
-      <div style={{ height: 5, borderRadius: 3, background: "var(--surface-muted)", overflow: "hidden" }}>
-        <div style={{ height: "100%", width: `${value}%`, borderRadius: 3, background: "var(--accent)" }} />
-      </div>
-    </div>
-  );
-}
-
-function generateIncidentPdf(
-  incident: Incident,
-  materials: ReturnType<typeof deriveResponseMaterials>
-) {
+function generateIncidentPdf(incident: Incident, materials: ResponseMaterials) {
   const doc = new jsPDF();
   let y = 20;
   const line = (text: string, size = 11, bold = false, gap = 7) => {
@@ -162,7 +124,7 @@ function generateIncidentPdf(
   line("Response & cleanup", 13, true, 8);
   line(`Team assigned: ${materials.team}`);
   line(`Boom deployed: ${materials.boomMeters} m`);
-  line(`Sorbent used: ${materials.sorbentKg} kg`);
+  line(`Sorbent used: ${materials.sorbentKg} kg (ratio: 1g ≈ ${SORBENT_RATIO_G}g oil)`);
   line(`Skimmer units: ${materials.skimmerUnits}`);
   line(`Support vessels: ${materials.vesselCount}`);
   line(`Estimated duration: ${materials.durationHours} h`);
@@ -183,10 +145,14 @@ function generateIncidentPdf(
 type Props = {
   incident: Incident | null;
   onClose: () => void;
-  wide?: boolean;
-  /** "incident" (default) shows a compact AI summary with a link to the full
-   * breakdown. "ai" shows the full AI deep-dive — used when opened via the
-   * "AI overlay" click-through from the incident view. */
+  /** Opens as a full-page view instead of a compact side panel — purely a
+   * layout choice, independent of how much content is shown. */
+  expanded?: boolean;
+  /** "incident" (default) shows a compact AI summary with a CTA into the
+   * full breakdown — even when expanded. "ai" shows the full AI deep-dive
+   * (confidence gauges, projection/attribution/options charts, source &
+   * drift analysis, method comparison) — only reached by actually
+   * navigating to the AI Analysis page. */
   context?: "incident" | "ai";
 };
 
@@ -359,19 +325,17 @@ const actionBtnStyle = (variant: "primary" | "danger" | "neutral" | "warn"): Rea
   };
 };
 
-export default function IncidentDetailsPanel({ incident, onClose, wide, context = "incident" }: Props) {
+export default function IncidentDetailsPanel({ incident, onClose, expanded, context = "incident" }: Props) {
   const router = useRouter();
   const { incidents: allIncidents, applyHumanAction, getIncidentById } = useIncidentStore();
   const live = incident ? getIncidentById(incident.id) || incident : null;
   const vessel = getVesselById(live?.relatedVesselId);
   const pending = live?.reviewStatus === "PENDING" || live?.humanDecision === "pending";
 
-  const [wind, setWind] = useState<WindContext | null>(null);
-  const [sea, setSea] = useState<SeaState | null>(null);
-  const [weatherLoading, setWeatherLoading] = useState(false);
+  const { wind, sea, estimate: sourceEstimate, loading: weatherLoading } = useSpillSourceEstimate(live);
   const [pdfState, setPdfState] = useState<"idle" | "generating" | "ready">("idle");
 
-  const generatePdf = (materials: ReturnType<typeof deriveResponseMaterials>) => {
+  const generatePdf = (materials: ResponseMaterials) => {
     if (pdfState !== "idle" || !live) return;
     setPdfState("generating");
     setTimeout(() => {
@@ -383,30 +347,6 @@ export default function IncidentDetailsPanel({ incident, onClose, wide, context 
   useEffect(() => {
     setPdfState("idle");
   }, [live?.id]);
-
-  useEffect(() => {
-    if (!live) {
-      setWind(null);
-      setSea(null);
-      return;
-    }
-    let cancelled = false;
-    setWeatherLoading(true);
-    setWind(null);
-    setSea(null);
-    Promise.all([
-      getWindContext(live.lat, live.lng, live.timestamp),
-      getSeaState(live.lat, live.lng, live.timestamp),
-    ]).then(([w, s]) => {
-      if (cancelled) return;
-      setWind(w);
-      setSea(s);
-      setWeatherLoading(false);
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [live?.id, live?.lat, live?.lng, live?.timestamp]);
 
   const run = (action: "confirm" | "reject" | "escalate" | "mark_cleaning") => {
     if (!live) return;
@@ -424,455 +364,547 @@ export default function IncidentDetailsPanel({ incident, onClose, wide, context 
       title={live ? `Incident ${live.displayId}` : ""}
       subtitle={live?.title || live?.location}
       onClose={onClose}
-      width={wide ? "min(900px, 94vw)" : 480}
-      variant={wide ? "center" : "side"}
+      width={expanded ? "min(1100px, 96vw)" : 480}
+      variant={expanded ? "full" : "side"}
     >
-      {live && (
-        <>
-          <Section title="Incident information">
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
-              <Field label="Incident ID">
-                <span style={{ fontFamily: "ui-monospace, monospace", color: "var(--accent)" }}>
-                  {live.displayId}
-                </span>
-              </Field>
-              <Field label="Detection source">{live.detectionSource}</Field>
-              <Field label="Location">{live.location}</Field>
-              <Field label="Detection time">
-                {formatDateTimeAZT(live.timestamp)} AZT
-              </Field>
-              <Field label="Coordinates">
-                <span style={{ fontVariantNumeric: "tabular-nums", fontFamily: "ui-monospace, monospace" }}>
-                  {live.lat.toFixed(4)}°N, {live.lng.toFixed(4)}°E
-                </span>
-              </Field>
-              <Field label="Estimated area">{formatAreaM2(live.areaM2)}</Field>
-              <Field label="Risk">
-                <RiskBadge risk={live.risk} />
-              </Field>
-              <Field label="Status">
-                <StatusBadge status={live.status} />
-              </Field>
-              <Field label="Model confidence">
-                <span style={{ color: "var(--accent)", fontWeight: 600 }}>
-                  {Math.round(live.aiProbability * 100)}%
-                </span>
-                <span style={{ fontSize: 10, color: "var(--text-tertiary)", marginLeft: 4 }}>
-                  (not a pollution probability)
-                </span>
-              </Field>
-              <Field label="Review status">{live.reviewStatus}</Field>
-            </div>
-          </Section>
+      {live &&
+        (() => {
+          const impact = deriveAiImpact(live, wind);
+          const materials = deriveResponseMaterials(live, impact.volumeBbl);
+          const deep = deriveAiDeepDive(live);
+          const similar = findSimilarIncidents(live, allIncidents);
 
-          <Section title="Satellite analysis" icon={<Satellite size={14} />}>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-              <ImagePlaceholder
-                title="Original SAR (mock)"
-                subtitle="Placeholder — Sentinel-1 feed not connected"
-                accent="rgba(129,178,154,0.08)"
-              />
-              <ImagePlaceholder
-                title="AI overlay (mock)"
-                subtitle="Detected boundary placeholder"
-                accent="rgba(224,122,95,0.1)"
-                onClick={() => router.push(`/ai-analysis?open=${live.id}&wide=1`)}
-              />
-            </div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginTop: 12 }}>
-              <Field label="Detected area">{formatAreaM2(live.areaM2)}</Field>
-              <Field label="Model confidence">
-                {Math.round(live.aiProbability * 100)}%
-                <span style={{ fontSize: 10, color: "var(--text-tertiary)", marginLeft: 4 }}>
-                  (not a pollution probability)
-                </span>
-              </Field>
-            </div>
-          </Section>
-
-          <Section title="AI analysis" icon={<Brain size={14} />}>
-            <p style={{ margin: 0, fontSize: 13, color: "var(--text-primary)", lineHeight: 1.55 }}>
-              {live.aiSummary}
-            </p>
-
-            {context === "incident" ? (
-              <button
-                type="button"
-                onClick={() => router.push(`/ai-analysis?open=${live.id}&wide=1`)}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  gap: 10,
-                  width: "100%",
-                  marginTop: 14,
-                  padding: "10px 12px",
-                  borderRadius: 8,
-                  border: "1px solid rgba(224,122,95,0.3)",
-                  background: "rgba(224,122,95,0.08)",
-                  cursor: "pointer",
-                  fontFamily: "inherit",
-                  textAlign: "left",
-                }}
-              >
-                <span style={{ fontSize: 12, color: "var(--text-secondary)" }}>
-                  Full breakdown available — confidence scoring, drift forecast, processing pipeline.
-                </span>
-                <span style={{ fontSize: 11, fontWeight: 700, color: "var(--color-high-text)", whiteSpace: "nowrap" }}>
-                  Open AI Analysis →
-                </span>
-              </button>
-            ) : (
-              <>
-                {(() => {
-                  const impact = deriveAiImpact(live, wind?.windHeading);
-                  const deep = deriveAiDeepDive(live);
-                  const similar = findSimilarIncidents(live, allIncidents);
-                  return (
-                    <>
-                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginTop: 14 }}>
-                        <Field label="Estimated volume">~{impact.volumeBbl} bbl</Field>
-                        <Field label="Model version">{impact.modelVersion}</Field>
-                        <Field label="24h drift forecast">
-                          {impact.driftKm24h} km toward {impact.driftCompass} ({impact.driftHeading}°)
-                          {wind && (
-                            <span style={{ fontSize: 10, color: "var(--text-tertiary)", marginLeft: 4 }}>
-                              — from live wind
-                            </span>
-                          )}
-                        </Field>
-                      </div>
-
-                      <div style={{ marginTop: 18 }}>
-                        <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.07em", textTransform: "uppercase", color: "var(--text-tertiary)", marginBottom: 8 }}>
-                          Detection confidence breakdown
-                        </div>
-                        <div style={{ display: "grid", gap: 8 }}>
-                          <ConfidenceBar label="Texture consistency" value={deep.confidence.texture} />
-                          <ConfidenceBar label="Edge sharpness" value={deep.confidence.edge} />
-                          <ConfidenceBar label="Spectral signature" value={deep.confidence.spectral} />
-                        </div>
-                      </div>
-
-                      <div style={{ marginTop: 18 }}>
-                        <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.07em", textTransform: "uppercase", color: "var(--text-tertiary)", marginBottom: 8 }}>
-                          Processing pipeline
-                        </div>
-                        <div style={{ display: "grid", gap: 6 }}>
-                          {deep.pipeline.map((step) => (
-                            <div key={step.step} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", fontSize: 12 }}>
-                              <span style={{ display: "flex", alignItems: "center", gap: 6, color: "var(--text-primary)" }}>
-                                <CheckCircle2 size={12} color="var(--accent)" />
-                                {step.step}
-                              </span>
-                              <span style={{ color: "var(--text-tertiary)", fontSize: 11, fontVariantNumeric: "tabular-nums" }}>
-                                {(step.ms / 1000).toFixed(1)}s
-                              </span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-
-                      {similar.length > 0 && (
-                        <div style={{ marginTop: 18 }}>
-                          <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 10, fontWeight: 600, letterSpacing: "0.07em", textTransform: "uppercase", color: "var(--text-tertiary)", marginBottom: 8 }}>
-                            <History size={12} /> Similar historical incidents
-                          </div>
-                          <div style={{ display: "grid", gap: 6 }}>
-                            {similar.map((s) => (
-                              <div key={s.displayId} style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: "var(--text-secondary)" }}>
-                                <span>{s.displayId} · {s.location}</span>
-                                <span style={{ fontWeight: 600, color: "var(--accent)" }}>{s.similarity}% similar</span>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </>
-                  );
-                })()}
-              </>
-            )}
-
-            <div style={{ marginTop: 14 }}>
-              <Field label="Estimated cause">
-                <div style={{ marginTop: 8 }}>{live.estimatedCause}</div>
-              </Field>
-            </div>
-            <Field label="Unconfirmed source hypothesis">
-              <div style={{ marginTop: 8 }}>
-                {live.spillSource}
-                <span style={{ fontSize: 10, color: "var(--text-tertiary)", marginLeft: 6 }}>
-                  — unconfirmed, pending human review
-                </span>
-              </div>
-            </Field>
-            <div
-              style={{
-                marginTop: 12,
-                padding: "10px 12px",
-                borderRadius: 8,
-                background: "rgba(233,196,106,0.08)",
-                border: "1px solid rgba(233,196,106,0.28)",
-                fontSize: 12,
-                color: "var(--text-secondary)",
-                lineHeight: 1.45,
-              }}
-            >
-              <strong style={{ color: "var(--color-med-text)" }}>Human review required.</strong>
-              <br />
-              AI provides analysis and recommendations. Final operational decisions are made by
-              human experts.
-            </div>
-          </Section>
-
-          {vessel && (
-            <Section title="Related vessel" icon={<Ship size={14} />}>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                <Field label="Name">{vessel.name}</Field>
-                <Field label="Type">{vessel.type}</Field>
-                <Field label="Status">{vessel.status}</Field>
-                <Field label="Speed">{vessel.speedKnots.toFixed(1)} kn</Field>
-              </div>
-            </Section>
-          )}
-
-          <Section title="Environmental context" icon={<CloudSun size={14} />}>
-            {weatherLoading && !wind && !sea ? (
-              <div style={{ fontSize: 12, color: "var(--text-tertiary)" }}>
-                Loading live weather…
-              </div>
-            ) : wind || sea ? (
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                {wind && (
-                  <Field label="Wind">
-                    {wind.windSpeedKnots} kn · {wind.windHeading}°
-                    <FreshnessNote staleMinutes={wind.staleMinutes} />
+          return (
+            <>
+              <Section title="Incident information">
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+                  <Field label="Incident ID">
+                    <span style={{ fontFamily: "ui-monospace, monospace", color: "var(--accent)" }}>
+                      {live.displayId}
+                    </span>
                   </Field>
-                )}
-                {sea && (
-                  <Field label="Sea state">
-                    {sea.seaState}
-                    <FreshnessNote staleMinutes={sea.staleMinutes} />
+                  <Field label="Detection source">{live.detectionSource}</Field>
+                  <Field label="Location">{live.location}</Field>
+                  <Field label="Detection time">
+                    {formatDateTimeAZT(live.timestamp)} AZT
                   </Field>
-                )}
-                {wind && (
-                  <Field label="Visibility">
-                    {wind.visibilityKm} km
-                    <FreshnessNote staleMinutes={wind.staleMinutes} />
+                  <Field label="Coordinates">
+                    <span style={{ fontVariantNumeric: "tabular-nums", fontFamily: "ui-monospace, monospace" }}>
+                      {live.lat.toFixed(4)}°N, {live.lng.toFixed(4)}°E
+                    </span>
                   </Field>
-                )}
-                {sea && (
-                  <Field label="Wave height">
-                    {sea.waveHeightM} m · {sea.wavePeriodS}s period
-                    <FreshnessNote staleMinutes={sea.staleMinutes} />
+                  <Field label="Estimated area">{formatAreaM2(live.areaM2)}</Field>
+                  <Field label="Risk">
+                    <RiskBadge risk={live.risk} />
                   </Field>
-                )}
-                {wind && (
-                  <Field label="Temperature">
-                    {wind.temperatureC}°C
-                    <FreshnessNote staleMinutes={wind.staleMinutes} />
+                  <Field label="Status">
+                    <StatusBadge status={live.status} />
                   </Field>
-                )}
-              </div>
-            ) : (
-              <div style={{ fontSize: 12, color: "var(--text-tertiary)" }}>
-                Live weather unavailable
-              </div>
-            )}
-          </Section>
-
-          <Section title="Response status">
-            <Field label="Current status">{live.responseStatus}</Field>
-          </Section>
-
-          {/* Human-in-the-loop decision — deliberately styled to stand out,
-              this is the core product feature: AI never decides alone. */}
-          <div
-            style={{
-              marginBottom: 18,
-              borderRadius: 12,
-              border: "1.5px solid var(--accent)",
-              background: "var(--accent-soft)",
-              padding: 16,
-            }}
-          >
-            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
-              <div
-                style={{
-                  width: 32,
-                  height: 32,
-                  borderRadius: 8,
-                  background: "var(--accent)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  color: "var(--bg-elevated)",
-                  flexShrink: 0,
-                }}
-              >
-                <UserCheck size={17} />
-              </div>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 13, fontWeight: 700, letterSpacing: "0.03em", color: "var(--text-primary)" }}>
-                  Human-in-the-Loop Decision
+                  <Field label="Model confidence">
+                    <span style={{ color: "var(--accent)", fontWeight: 600 }}>
+                      {Math.round(live.aiProbability * 100)}%
+                    </span>
+                    <span style={{ fontSize: 10, color: "var(--text-tertiary)", marginLeft: 4 }}>
+                      (not a pollution probability)
+                    </span>
+                  </Field>
+                  <Field label="Review status">{live.reviewStatus}</Field>
                 </div>
-                <div style={{ fontSize: 11, color: "var(--text-secondary)" }}>
-                  The final operational call — always made by a person, never the AI.
+              </Section>
+
+              <Section title="Satellite analysis" icon={<Satellite size={14} />}>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                  <ImagePlaceholder
+                    title="Original SAR (mock)"
+                    subtitle="Placeholder — Sentinel-1 feed not connected"
+                    accent="rgba(129,178,154,0.08)"
+                  />
+                  <ImagePlaceholder
+                    title="AI overlay (mock)"
+                    subtitle="Detected boundary placeholder"
+                    accent="rgba(224,122,95,0.1)"
+                    onClick={() => router.push(`/ai-analysis?open=${live.id}&wide=1`)}
+                  />
                 </div>
-              </div>
-              {pending && (
-                <span
-                  style={{
-                    flexShrink: 0,
-                    fontSize: 10,
-                    fontWeight: 700,
-                    letterSpacing: "0.05em",
-                    textTransform: "uppercase",
-                    color: "#fff",
-                    background: "var(--color-high-text)",
-                    borderRadius: 12,
-                    padding: "4px 9px",
-                  }}
-                >
-                  Awaiting
-                </span>
-              )}
-            </div>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginTop: 12 }}>
+                  <Field label="Detected area">{formatAreaM2(live.areaM2)}</Field>
+                  <Field label="Model confidence">
+                    {Math.round(live.aiProbability * 100)}%
+                    <span style={{ fontSize: 10, color: "var(--text-tertiary)", marginLeft: 4 }}>
+                      (not a pollution probability)
+                    </span>
+                  </Field>
+                </div>
+              </Section>
 
-            <div style={{ display: "grid", gap: 10 }}>
-              <Field label="Decision">
-                {HUMAN_DECISION_LABEL[live.humanDecision] ?? live.humanDecision}
-              </Field>
-              {live.humanDecisionBy && <Field label="Specialist">{live.humanDecisionBy}</Field>}
-              {live.humanDecisionAt && (
-                <Field label="Decided at">{formatDateTimeAZT(live.humanDecisionAt)} AZT</Field>
-              )}
-              {live.humanDecisionNote && <Field label="Notes">{live.humanDecisionNote}</Field>}
-            </div>
+              <Section title="AI analysis" icon={<Brain size={14} />}>
+                <p style={{ margin: 0, fontSize: 13, color: "var(--text-primary)", lineHeight: 1.55 }}>
+                  {live.aiSummary}
+                </p>
 
-            {pending && (
-              <div style={{ marginTop: 14, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-                <button type="button" style={actionBtnStyle("primary")} onClick={() => run("confirm")}>
-                  <CheckCircle2 size={13} /> Confirm Incident
-                </button>
-                <button type="button" style={actionBtnStyle("danger")} onClick={() => run("reject")}>
-                  <XCircle size={13} /> Reject Incident
-                </button>
-                <button type="button" style={actionBtnStyle("warn")} onClick={() => run("escalate")}>
-                  <AlertTriangle size={13} /> Escalate
-                </button>
-                <button type="button" style={actionBtnStyle("neutral")} onClick={() => run("mark_cleaning")}>
-                  <Droplets size={13} /> Mark for Cleaning
-                </button>
-              </div>
-            )}
-
-            {!pending && live.status !== "resolved" && live.status !== "rejected" && live.status !== "cleaning" && (
-              <div style={{ marginTop: 12 }}>
-                <button type="button" style={actionBtnStyle("neutral")} onClick={() => run("mark_cleaning")}>
-                  <Droplets size={13} /> Mark Cleaning Started
-                </button>
-              </div>
-            )}
-          </div>
-
-          {!pending && live.status !== "rejected" && (
-            <Section title="Response report" icon={<ListChecks size={14} />}>
-              {(() => {
-                const materials = deriveResponseMaterials(live);
-                return (
+                {context !== "ai" ? (
+                  <button
+                    type="button"
+                    onClick={() => router.push(`/ai-analysis?open=${live.id}&wide=1`)}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      gap: 10,
+                      width: "100%",
+                      marginTop: 14,
+                      padding: "10px 12px",
+                      borderRadius: 8,
+                      border: "1px solid rgba(224,122,95,0.3)",
+                      background: "rgba(224,122,95,0.08)",
+                      cursor: "pointer",
+                      fontFamily: "inherit",
+                      textAlign: "left",
+                    }}
+                  >
+                    <span style={{ fontSize: 12, color: "var(--text-secondary)" }}>
+                      Full breakdown available — confidence scoring, drift forecast, processing pipeline.
+                    </span>
+                    <span style={{ fontSize: 11, fontWeight: 700, color: "var(--color-high-text)", whiteSpace: "nowrap" }}>
+                      Open full analysis →
+                    </span>
+                  </button>
+                ) : (
                   <>
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 4 }}>
-                      <Field label="Incident">
-                        {live.displayId} · {live.location}
-                      </Field>
-                      <Field label="Affected area">{formatAreaM2(live.areaM2)}</Field>
-                      <Field label="Report prepared by">{live.humanDecisionBy || "Auto-generated"}</Field>
-                      <Field label="Report date">{formatDateTimeAZT(new Date().toISOString())} AZT</Field>
-                    </div>
-
-                    <div style={{ marginTop: 16 }}>
-                      <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.07em", textTransform: "uppercase", color: "var(--text-tertiary)", marginBottom: 8 }}>
-                        Equipment & crew
-                      </div>
-                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                        <Field label="Boom deployed">{materials.boomMeters} m</Field>
-                        <Field label="Sorbent used">{materials.sorbentKg} kg</Field>
-                        <Field label="Skimmer units">{materials.skimmerUnits}</Field>
-                        <Field label="Support vessels">
-                          <span style={{ display: "flex", alignItems: "center", gap: 5 }}>
-                            <Anchor size={12} /> {materials.vesselCount}
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginTop: 14 }}>
+                      <Field label="Estimated volume">~{impact.volumeBbl} bbl</Field>
+                      <Field label="Model version">{impact.modelVersion}</Field>
+                      <Field label="24h drift forecast">
+                        {impact.driftKm24h} km toward {impact.driftCompass} ({impact.driftHeading}°)
+                        {wind && (
+                          <span style={{ fontSize: 10, color: "var(--text-tertiary)", marginLeft: 4 }}>
+                            — from live wind
                           </span>
-                        </Field>
-                        <Field label="Team assigned">{materials.team}</Field>
-                        <Field label="Estimated duration">{materials.durationHours} h</Field>
+                        )}
+                      </Field>
+                    </div>
+
+                    <div style={{ marginTop: 20 }}>
+                      <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.07em", textTransform: "uppercase", color: "var(--text-tertiary)", marginBottom: 10 }}>
+                        Detection confidence breakdown
+                      </div>
+                      <ConfidenceGauges
+                        texture={deep.confidence.texture}
+                        edge={deep.confidence.edge}
+                        spectral={deep.confidence.spectral}
+                      />
+                    </div>
+
+                    <div style={{ marginTop: 20 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 10, fontWeight: 600, letterSpacing: "0.07em", textTransform: "uppercase", color: "var(--text-tertiary)", marginBottom: 8 }}>
+                        <TrendingUp size={12} /> Spill growth & response projection
+                      </div>
+                      <SpillProjectionChart series={deriveProjectionSeries(live)} />
+                      <div style={{ fontSize: 11, color: "var(--text-tertiary)", marginTop: 4 }}>
+                        Modeled from observed growth rate — illustrative, not a guaranteed forecast.
                       </div>
                     </div>
 
-                    <div style={{ marginTop: 16 }}>
+                    <div style={{ marginTop: 20 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 10, fontWeight: 600, letterSpacing: "0.07em", textTransform: "uppercase", color: "var(--text-tertiary)", marginBottom: 8 }}>
+                        <PieChartIcon size={12} /> Spill source attribution
+                      </div>
+                      <SourceAttributionPie data={deriveSourceAttribution()} />
+                      <div style={{ fontSize: 11, color: "var(--text-tertiary)", marginTop: 8 }}>
+                        Unconfirmed attribution — pending investigation.
+                      </div>
+                    </div>
+
+                    <div style={{ marginTop: 20 }}>
                       <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.07em", textTransform: "uppercase", color: "var(--text-tertiary)", marginBottom: 8 }}>
-                        Response phases
+                        AI-recommended response options
+                      </div>
+                      <ResponseOptionsBar data={deriveResponseOptions(live, materials)} />
+                    </div>
+
+                    <div style={{ marginTop: 20 }}>
+                      <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.07em", textTransform: "uppercase", color: "var(--text-tertiary)", marginBottom: 8 }}>
+                        Processing pipeline
                       </div>
                       <div style={{ display: "grid", gap: 6 }}>
-                        {[
-                          { phase: "Mobilization", done: true },
-                          { phase: "Containment", done: true },
-                          { phase: "Recovery", done: live.status === "resolved" || live.status === "cleaning" },
-                          { phase: "Site restoration & sign-off", done: live.status === "resolved" },
-                        ].map((p) => (
-                          <div key={p.phase} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12 }}>
-                            {p.done ? (
+                        {deep.pipeline.map((step) => (
+                          <div key={step.step} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", fontSize: 12 }}>
+                            <span style={{ display: "flex", alignItems: "center", gap: 6, color: "var(--text-primary)" }}>
                               <CheckCircle2 size={12} color="var(--accent)" />
-                            ) : (
-                              <Loader2 size={12} color="var(--text-tertiary)" />
-                            )}
-                            <span style={{ color: p.done ? "var(--text-primary)" : "var(--text-tertiary)" }}>
-                              {p.phase}
+                              {step.step}
+                            </span>
+                            <span style={{ color: "var(--text-tertiary)", fontSize: 11, fontVariantNumeric: "tabular-nums" }}>
+                              {(step.ms / 1000).toFixed(1)}s
                             </span>
                           </div>
                         ))}
                       </div>
                     </div>
 
-                    <div style={{ marginTop: 16, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 12px", borderRadius: 8, background: "var(--surface-muted)" }}>
-                      <span style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "var(--text-secondary)" }}>
-                        <DollarSign size={13} /> Estimated response cost
-                      </span>
-                      <span style={{ fontWeight: 700, fontSize: 14, color: "var(--text-primary)" }}>
-                        ${materials.estimatedCostUsd.toLocaleString("en-US")}
-                      </span>
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={() => generatePdf(materials)}
-                      disabled={pdfState !== "idle"}
-                      style={{
-                        ...actionBtnStyle(pdfState === "ready" ? "primary" : "neutral"),
-                        marginTop: 16,
-                        cursor: pdfState === "idle" ? "pointer" : "default",
-                      }}
-                    >
-                      {pdfState === "generating" && <Loader2 size={13} className="spinner" />}
-                      {pdfState === "ready" && <CheckCircle2 size={13} />}
-                      {pdfState === "idle" && <FileDown size={13} />}
-                      {pdfState === "idle" && "Generate PDF Report"}
-                      {pdfState === "generating" && "Generating…"}
-                      {pdfState === "ready" && "Downloaded — Generate Again"}
-                    </button>
-                    {pdfState === "ready" && (
-                      <div style={{ fontSize: 10, color: "var(--text-tertiary)", marginTop: 6, textAlign: "center" }}>
-                        A real PDF was saved to your downloads.
+                    {similar.length > 0 && (
+                      <div style={{ marginTop: 20 }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 10, fontWeight: 600, letterSpacing: "0.07em", textTransform: "uppercase", color: "var(--text-tertiary)", marginBottom: 8 }}>
+                          <History size={12} /> Similar historical incidents
+                        </div>
+                        <div style={{ display: "grid", gap: 6 }}>
+                          {similar.map((s) => (
+                            <div key={s.displayId} style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: "var(--text-secondary)" }}>
+                              <span>{s.displayId} · {s.location}</span>
+                              <span style={{ fontWeight: 600, color: "var(--accent)" }}>{s.similarity}% similar</span>
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     )}
                   </>
-                );
-              })()}
-            </Section>
-          )}
-        </>
-      )}
+                )}
+
+                <div style={{ marginTop: 14 }}>
+                  <Field label="Estimated cause">
+                    <div style={{ marginTop: 8 }}>{live.estimatedCause}</div>
+                  </Field>
+                </div>
+                <Field label="Unconfirmed source hypothesis">
+                  <div style={{ marginTop: 8 }}>
+                    {live.spillSource}
+                    <span style={{ fontSize: 10, color: "var(--text-tertiary)", marginLeft: 6 }}>
+                      — unconfirmed, pending human review
+                    </span>
+                  </div>
+                </Field>
+                <div
+                  style={{
+                    marginTop: 12,
+                    padding: "10px 12px",
+                    borderRadius: 8,
+                    background: "rgba(233,196,106,0.08)",
+                    border: "1px solid rgba(233,196,106,0.28)",
+                    fontSize: 12,
+                    color: "var(--text-secondary)",
+                    lineHeight: 1.45,
+                  }}
+                >
+                  <strong style={{ color: "var(--color-med-text)" }}>Human review required.</strong>
+                  <br />
+                  AI provides analysis and recommendations. Final operational decisions are made by
+                  human experts.
+                </div>
+              </Section>
+
+              {context === "ai" && (
+                <Section title="Spill source & drift analysis" icon={<Crosshair size={14} />}>
+                  {weatherLoading && !sourceEstimate ? (
+                    <div style={{ fontSize: 12, color: "var(--text-tertiary)" }}>
+                      Reconstructing drift path from live wind data…
+                    </div>
+                  ) : sourceEstimate?.available ? (
+                    <>
+                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                        <Field label="Estimated rupture coordinates">
+                          <span style={{ fontVariantNumeric: "tabular-nums", fontFamily: "ui-monospace, monospace" }}>
+                            {sourceEstimate.lat.toFixed(4)}°N, {sourceEstimate.lng.toFixed(4)}°E
+                          </span>
+                        </Field>
+                        <Field label="Confidence">
+                          <span style={{ color: "var(--accent)", fontWeight: 600 }}>{sourceEstimate.confidencePct}%</span>
+                        </Field>
+                        <Field label="Distance drifted">
+                          {sourceEstimate.distanceKm} km over {sourceEstimate.hoursElapsed}h
+                        </Field>
+                        <Field label="Drift speed">
+                          {sourceEstimate.driftSpeedKmh} km/h toward {compassLabel(sourceEstimate.downwindBearingDeg)}
+                        </Field>
+                        <Field label="Estimated leak rate">~{sourceEstimate.leakRateBbl} bbl/h</Field>
+                        <Field label="Estimated depth">~{sourceEstimate.depthM} m</Field>
+                      </div>
+                      <div
+                        style={{
+                          marginTop: 12,
+                          padding: "10px 12px",
+                          borderRadius: 8,
+                          background: "rgba(185,28,28,0.06)",
+                          border: "1px solid rgba(185,28,28,0.22)",
+                          fontSize: 11,
+                          color: "var(--text-secondary)",
+                          lineHeight: 1.5,
+                        }}
+                      >
+                        Reverse-calculated by traveling {sourceEstimate.bearingCompass} ({sourceEstimate.bearingDeg}°) —
+                        upwind, opposite the slick&apos;s drift direction — using the standard ~3%-of-wind-speed drift
+                        rule from oil-spill trajectory modelling, over the time elapsed since detection. Marked
+                        &ldquo;✕&rdquo; on the dashboard map. A simplification: real models also factor in ocean
+                        current, which no free live data source provides here.
+                      </div>
+                    </>
+                  ) : sourceEstimate?.reason === "too-stale" ? (
+                    <div style={{ fontSize: 12, color: "var(--text-tertiary)", lineHeight: 1.5 }}>
+                      {sourceEstimate.hoursElapsed}h have elapsed since detection — a slick has typically
+                      weathered and dispersed too much by this point for a reliable source back-calculation.
+                    </div>
+                  ) : (
+                    <div style={{ fontSize: 12, color: "var(--text-tertiary)" }}>
+                      Live wind data unavailable — cannot back-calculate a source estimate.
+                    </div>
+                  )}
+                </Section>
+              )}
+
+              {vessel && (
+                <Section title="Related vessel" icon={<Ship size={14} />}>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                    <Field label="Name">{vessel.name}</Field>
+                    <Field label="Type">{vessel.type}</Field>
+                    <Field label="Status">{vessel.status}</Field>
+                    <Field label="Speed">{vessel.speedKnots.toFixed(1)} kn</Field>
+                  </div>
+                </Section>
+              )}
+
+              <Section title="Environmental context" icon={<CloudSun size={14} />}>
+                {weatherLoading && !wind && !sea ? (
+                  <div style={{ fontSize: 12, color: "var(--text-tertiary)" }}>
+                    Loading live weather…
+                  </div>
+                ) : wind || sea ? (
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                    {wind && (
+                      <Field label="Wind">
+                        {wind.windSpeedKnots} kn · {wind.windHeading}°
+                        <FreshnessNote staleMinutes={wind.staleMinutes} />
+                      </Field>
+                    )}
+                    {sea && (
+                      <Field label="Sea state">
+                        {sea.seaState}
+                        <FreshnessNote staleMinutes={sea.staleMinutes} />
+                      </Field>
+                    )}
+                    {wind && (
+                      <Field label="Visibility">
+                        {wind.visibilityKm} km
+                        <FreshnessNote staleMinutes={wind.staleMinutes} />
+                      </Field>
+                    )}
+                    {sea && (
+                      <Field label="Wave height">
+                        {sea.waveHeightM} m · {sea.wavePeriodS}s period
+                        <FreshnessNote staleMinutes={sea.staleMinutes} />
+                      </Field>
+                    )}
+                    {wind && (
+                      <Field label="Temperature">
+                        {wind.temperatureC}°C
+                        <FreshnessNote staleMinutes={wind.staleMinutes} />
+                      </Field>
+                    )}
+                  </div>
+                ) : (
+                  <div style={{ fontSize: 12, color: "var(--text-tertiary)" }}>
+                    Live weather unavailable
+                  </div>
+                )}
+              </Section>
+
+              <Section title="Response status">
+                <Field label="Current status">{live.responseStatus}</Field>
+              </Section>
+
+              {/* Human-in-the-loop decision — deliberately styled to stand out,
+                  this is the core product feature: AI never decides alone. */}
+              <div
+                style={{
+                  marginBottom: 18,
+                  borderRadius: 12,
+                  border: "1.5px solid var(--accent)",
+                  background: "var(--accent-soft)",
+                  padding: 16,
+                }}
+              >
+                <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
+                  <div
+                    style={{
+                      width: 32,
+                      height: 32,
+                      borderRadius: 8,
+                      background: "var(--accent)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      color: "var(--bg-elevated)",
+                      flexShrink: 0,
+                    }}
+                  >
+                    <UserCheck size={17} />
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 13, fontWeight: 700, letterSpacing: "0.03em", color: "var(--text-primary)" }}>
+                      Human-in-the-Loop Decision
+                    </div>
+                    <div style={{ fontSize: 11, color: "var(--text-secondary)" }}>
+                      The final operational call — always made by a person, never the AI.
+                    </div>
+                  </div>
+                  {pending && (
+                    <span
+                      style={{
+                        flexShrink: 0,
+                        fontSize: 10,
+                        fontWeight: 700,
+                        letterSpacing: "0.05em",
+                        textTransform: "uppercase",
+                        color: "#fff",
+                        background: "var(--color-high-text)",
+                        borderRadius: 12,
+                        padding: "4px 9px",
+                      }}
+                    >
+                      Awaiting
+                    </span>
+                  )}
+                </div>
+
+                <div style={{ display: "grid", gap: 10 }}>
+                  <Field label="Decision">
+                    {HUMAN_DECISION_LABEL[live.humanDecision] ?? live.humanDecision}
+                  </Field>
+                  {live.humanDecisionBy && <Field label="Specialist">{live.humanDecisionBy}</Field>}
+                  {live.humanDecisionAt && (
+                    <Field label="Decided at">{formatDateTimeAZT(live.humanDecisionAt)} AZT</Field>
+                  )}
+                  {live.humanDecisionNote && <Field label="Notes">{live.humanDecisionNote}</Field>}
+                </div>
+
+                {pending && (
+                  <div style={{ marginTop: 14, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                    <button type="button" style={actionBtnStyle("primary")} onClick={() => run("confirm")}>
+                      <CheckCircle2 size={13} /> Confirm Incident
+                    </button>
+                    <button type="button" style={actionBtnStyle("danger")} onClick={() => run("reject")}>
+                      <XCircle size={13} /> Reject Incident
+                    </button>
+                    <button type="button" style={actionBtnStyle("warn")} onClick={() => run("escalate")}>
+                      <AlertTriangle size={13} /> Escalate
+                    </button>
+                    <button type="button" style={actionBtnStyle("neutral")} onClick={() => run("mark_cleaning")}>
+                      <Droplets size={13} /> Mark for Cleaning
+                    </button>
+                  </div>
+                )}
+
+                {!pending && live.status !== "resolved" && live.status !== "rejected" && live.status !== "cleaning" && (
+                  <div style={{ marginTop: 12 }}>
+                    <button type="button" style={actionBtnStyle("neutral")} onClick={() => run("mark_cleaning")}>
+                      <Droplets size={13} /> Mark Cleaning Started
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {context === "ai" && !pending && live.status !== "rejected" && (
+                <Section title="AI-assisted vs. traditional response" icon={<Scale size={14} />}>
+                  <MethodComparisonBar data={deriveMethodComparison(live, materials)} />
+                  <div style={{ fontSize: 11, color: "var(--text-tertiary)", marginTop: 4 }}>
+                    Traditional response assumes manual patrol/reporting detection; slower detection means a
+                    larger spread by the time cleanup starts, raising material needs and cost.
+                  </div>
+                </Section>
+              )}
+
+              {!pending && live.status !== "rejected" && (
+                <Section title="Response report" icon={<ListChecks size={14} />}>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 4 }}>
+                    <Field label="Incident">
+                      {live.displayId} · {live.location}
+                    </Field>
+                    <Field label="Affected area">{formatAreaM2(live.areaM2)}</Field>
+                    <Field label="Report prepared by">{live.humanDecisionBy || "Auto-generated"}</Field>
+                    <Field label="Report date">{formatDateTimeAZT(new Date().toISOString())} AZT</Field>
+                  </div>
+
+                  <div style={{ marginTop: 16 }}>
+                    <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.07em", textTransform: "uppercase", color: "var(--text-tertiary)", marginBottom: 8 }}>
+                      Equipment & crew
+                    </div>
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                      <Field label="Boom deployed">{materials.boomMeters} m</Field>
+                      <Field label="Sorbent required">
+                        {materials.sorbentKg} kg
+                        <span style={{ fontSize: 10, color: "var(--text-tertiary)", marginLeft: 4 }}>
+                          (1g sorbent ≈ {SORBENT_RATIO_G}g oil, 25–30g range, from ~{materials.oilMassKg}kg oil)
+                        </span>
+                      </Field>
+                      <Field label="Skimmer units">{materials.skimmerUnits}</Field>
+                      <Field label="Support vessels">
+                        <span style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                          <Anchor size={12} /> {materials.vesselCount}
+                        </span>
+                      </Field>
+                      <Field label="Team assigned">{materials.team}</Field>
+                      <Field label="Estimated duration">{materials.durationHours} h</Field>
+                    </div>
+                  </div>
+
+                  <div style={{ marginTop: 16 }}>
+                    <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.07em", textTransform: "uppercase", color: "var(--text-tertiary)", marginBottom: 8 }}>
+                      Response phases
+                    </div>
+                    <div style={{ display: "grid", gap: 6 }}>
+                      {[
+                        { phase: "Mobilization", done: true },
+                        { phase: "Containment", done: true },
+                        { phase: "Recovery", done: live.status === "resolved" || live.status === "cleaning" },
+                        { phase: "Site restoration & sign-off", done: live.status === "resolved" },
+                      ].map((p) => (
+                        <div key={p.phase} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12 }}>
+                          {p.done ? (
+                            <CheckCircle2 size={12} color="var(--accent)" />
+                          ) : (
+                            <Loader2 size={12} color="var(--text-tertiary)" />
+                          )}
+                          <span style={{ color: p.done ? "var(--text-primary)" : "var(--text-tertiary)" }}>
+                            {p.phase}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div style={{ marginTop: 16, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 12px", borderRadius: 8, background: "var(--surface-muted)" }}>
+                    <span style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "var(--text-secondary)" }}>
+                      <DollarSign size={13} /> Estimated response cost
+                    </span>
+                    <span style={{ fontWeight: 700, fontSize: 14, color: "var(--text-primary)" }}>
+                      ${materials.estimatedCostUsd.toLocaleString("en-US")}
+                    </span>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => generatePdf(materials)}
+                    disabled={pdfState !== "idle"}
+                    style={{
+                      ...actionBtnStyle(pdfState === "ready" ? "primary" : "neutral"),
+                      marginTop: 16,
+                      cursor: pdfState === "idle" ? "pointer" : "default",
+                    }}
+                  >
+                    {pdfState === "generating" && <Loader2 size={13} className="spinner" />}
+                    {pdfState === "ready" && <CheckCircle2 size={13} />}
+                    {pdfState === "idle" && <FileDown size={13} />}
+                    {pdfState === "idle" && "Generate PDF Report"}
+                    {pdfState === "generating" && "Generating…"}
+                    {pdfState === "ready" && "Downloaded — Generate Again"}
+                  </button>
+                  {pdfState === "ready" && (
+                    <div style={{ fontSize: 10, color: "var(--text-tertiary)", marginTop: 6, textAlign: "center" }}>
+                      A real PDF was saved to your downloads.
+                    </div>
+                  )}
+                </Section>
+              )}
+            </>
+          );
+        })()}
     </DetailPanel>
   );
 }

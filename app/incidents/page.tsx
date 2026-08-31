@@ -67,13 +67,13 @@ function IncidentsContent() {
   const [sortKey, setSortKey] = useState<SortKey>("timestamp");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [wide, setWide] = useState(false);
+  const [expanded, setExpanded] = useState(false);
 
   useEffect(() => {
     const openId = searchParams.get("open");
     if (openId) {
       setSelectedId(openId);
-      setWide(searchParams.get("wide") === "1");
+      setExpanded(searchParams.get("wide") === "1");
     }
   }, [searchParams]);
 
@@ -164,7 +164,10 @@ function IncidentsContent() {
     </button>
   );
 
-  const openIncident = (inc: Incident) => setSelectedId(inc.id);
+  const openIncident = (inc: Incident) => {
+    setSelectedId(inc.id);
+    setExpanded(false);
+  };
 
   return (
     <>
@@ -355,7 +358,7 @@ function IncidentsContent() {
       <IncidentDetailsPanel
         incident={selected}
         onClose={() => setSelectedId(null)}
-        wide={wide}
+        expanded={expanded}
       />
 
       <style>{`

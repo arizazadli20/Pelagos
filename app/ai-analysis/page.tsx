@@ -27,14 +27,14 @@ function AiAnalysisContent() {
   const { aiAnalyses, getIncidentById } = useIncidentStore();
   const searchParams = useSearchParams();
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [wide, setWide] = useState(false);
+  const [expanded, setExpanded] = useState(false);
   const selected = selectedId ? getIncidentById(selectedId) || null : null;
 
   useEffect(() => {
     const openId = searchParams.get("open");
     if (openId) {
       setSelectedId(openId);
-      setWide(searchParams.get("wide") === "1");
+      setExpanded(searchParams.get("wide") === "1");
     }
   }, [searchParams]);
 
@@ -112,7 +112,10 @@ function AiAnalysisContent() {
                   background: "var(--surface-muted)",
                   cursor: "pointer",
                 }}
-                onClick={() => setSelectedId(a.incidentId)}
+                onClick={() => {
+                  setSelectedId(a.incidentId);
+                  setExpanded(false);
+                }}
               >
                 <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
                   <div>
@@ -155,7 +158,7 @@ function AiAnalysisContent() {
       <IncidentDetailsPanel
         incident={selected as Incident | null}
         onClose={() => setSelectedId(null)}
-        wide={wide}
+        expanded={expanded}
         context="ai"
       />
 

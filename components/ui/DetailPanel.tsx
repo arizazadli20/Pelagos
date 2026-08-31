@@ -10,9 +10,10 @@ type Props = {
   children: React.ReactNode;
   width?: number | string;
   /** "side" (default) slides in from the right edge. "center" opens as a
-   * centered mini-window, used for the guided demo flow (map → incident →
-   * AI analysis). */
-  variant?: "side" | "center";
+   * centered mini-window. "full" covers the entire viewport like a
+   * dedicated page — used for the guided demo flow's expanded analytics
+   * view (map → incident → AI analysis). */
+  variant?: "side" | "center" | "full";
 };
 
 export default function DetailPanel({
@@ -25,6 +26,7 @@ export default function DetailPanel({
   variant = "side",
 }: Props) {
   const centered = variant === "center";
+  const full = variant === "full";
 
   const header = (
     <div
@@ -33,7 +35,7 @@ export default function DetailPanel({
         alignItems: "flex-start",
         justifyContent: "space-between",
         gap: 12,
-        padding: "18px 20px",
+        padding: full ? "22px 32px" : "18px 20px",
         borderBottom: "1px solid var(--glass-border)",
         flexShrink: 0,
       }}
@@ -41,7 +43,7 @@ export default function DetailPanel({
       <div>
         <div
           style={{
-            fontSize: 16,
+            fontSize: full ? 22 : 16,
             fontWeight: 650,
             color: "var(--text-primary)",
             letterSpacing: "0.02em",
@@ -52,7 +54,7 @@ export default function DetailPanel({
         {subtitle && (
           <div
             style={{
-              fontSize: 13,
+              fontSize: full ? 14 : 13,
               color: "var(--text-secondary)",
               marginTop: 4,
             }}
@@ -85,7 +87,19 @@ export default function DetailPanel({
   );
 
   const body = (
-    <div style={{ flex: 1, overflowY: "auto", padding: 20, minHeight: 0 }}>{children}</div>
+    <div
+      style={{
+        flex: 1,
+        overflowY: "auto",
+        padding: full ? "24px 32px 48px" : 20,
+        minHeight: 0,
+        maxWidth: full ? 1100 : undefined,
+        width: "100%",
+        marginInline: full ? "auto" : undefined,
+      }}
+    >
+      {children}
+    </div>
   );
 
   const backdrop = (
@@ -103,6 +117,31 @@ export default function DetailPanel({
       }}
     />
   );
+
+  if (full) {
+    return (
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-label={title}
+        style={{
+          position: "fixed",
+          inset: 0,
+          zIndex: 95,
+          background: "var(--bg-elevated)",
+          display: "flex",
+          flexDirection: "column",
+          opacity: open ? 1 : 0,
+          transform: open ? "scale(1)" : "scale(0.98)",
+          transition: "opacity 0.2s ease, transform 0.2s ease",
+          visibility: open ? "visible" : "hidden",
+        }}
+      >
+        {header}
+        {body}
+      </div>
+    );
+  }
 
   if (centered) {
     return (

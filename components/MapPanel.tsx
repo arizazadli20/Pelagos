@@ -10,6 +10,7 @@ import {
   Vessel,
   formatAreaM2,
 } from "@/lib/mock-data";
+import { generateSlickPolygon, type SpillSourceResult } from "@/lib/spill-physics";
 
 type Props = {
   incidents: Incident[];
@@ -18,6 +19,12 @@ type Props = {
   activeMapCoords?: [number, number] | null;
   mapTheme?: "dark" | "light";
   liveIncidentId?: string | null;
+  /** Incident whose detail panel is currently open — gets the jagged slick
+   * outline + source-drift visualization instead of a plain dot. */
+  focusedIncidentId?: string | null;
+  /** Upwind source estimates, keyed by incident id, for whichever incidents
+   * are enhanced (live and/or focused). */
+  sourceEstimates?: Record<string, SpillSourceResult | null>;
   onIncidentSelect?: (incident: Incident) => void;
 };
 
@@ -87,6 +94,19 @@ function createVesselIcon(L: typeof import("leaflet"), heading: number) {
   });
 }
 
+function createSourceIcon(L: typeof import("leaflet")) {
+  const html = `
+    <div style="
+      width:22px;height:22px;
+      display:flex;align-items:center;justify-content:center;
+      font-weight:800;font-size:16px;line-height:1;
+      color:#7F1D1D;
+      text-shadow:0 0 3px #FFFFFF, 0 0 3px #FFFFFF, 0 0 6px #FFFFFF;
+    ">✕</div>
+  `;
+  return L.divIcon({ html, className: "", iconSize: [22, 22], iconAnchor: [11, 11] });
+}
+
 function makeIncidentPopup(inc: Incident) {
   const pct = Math.round(inc.aiProbability * 100);
   const risk = riskColor(inc.risk);
@@ -132,11 +152,13 @@ export default function MapPanel({
   activeMapCoords,
   mapTheme = "light",
   liveIncidentId,
+  focusedIncidentId,
+  sourceEstimates,
   onIncidentSelect,
 }: Props) {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInst = useRef<L.Map | null>(null);
-  const layersRef = useRef<(L.Marker | L.Circle)[]>([]);
+  const layersRef = useRef<(L.Marker | L.Circle | L.Polygon | L.Polyline)[]>([]);
   const tileLayerRef = useRef<L.TileLayer | null>(null);
   const [loaded, setLoaded] = useState(false);
   const onSelectRef = useRef(onIncidentSelect);
@@ -244,6 +266,46 @@ export default function MapPanel({
         });
         marker.addTo(map);
         layersRef.current.push(marker);
+
+        const enhanced = inc.id === liveIncidentId || inc.id === focusedIncidentId;
+        if (enhanced) {
+          const estimate = sourceEstimates?.[inc.id];
+          const downwindBearing = estimate?.available ? estimate.downwindBearingDeg : undefined;
+          const polygon = L.polygon(
+            generateSlickPolygon(inc.lat, inc.lng, inc.areaM2, inc.id, downwindBearing),
+            {
+              color: "#B91C1C",
+              weight: 1.5,
+              fillColor: "#B91C1C",
+              fillOpacity: 0.16,
+              opacity: 0.55,
+            }
+          );
+          polygon.addTo(map);
+          layersRef.current.push(polygon);
+
+          if (estimate?.available) {
+            const sourceMarker = L.marker([estimate.lat, estimate.lng], {
+              icon: createSourceIcon(L),
+              zIndexOffset: 700,
+            }).bindTooltip(
+              `<strong>Estimated rupture source</strong><br/>${estimate.distanceKm} km ${estimate.bearingCompass} of slick · ${estimate.confidencePct}% confidence`,
+              { direction: "top" }
+            );
+            sourceMarker.addTo(map);
+            layersRef.current.push(sourceMarker);
+
+            const driftLine = L.polyline(
+              [
+                [estimate.lat, estimate.lng],
+                [inc.lat, inc.lng],
+              ],
+              { color: "#B91C1C", weight: 2, dashArray: "6 6", opacity: 0.6 }
+            );
+            driftLine.addTo(map);
+            layersRef.current.push(driftLine);
+          }
+        }
       });
 
       // Vessel markers — blue
@@ -259,7 +321,7 @@ export default function MapPanel({
         layersRef.current.push(marker);
       });
     });
-  }, [incidents, vessels, riskZones, loaded, liveIncidentId]);
+  }, [incidents, vessels, riskZones, loaded, liveIncidentId, focusedIncidentId, sourceEstimates]);
 
   useEffect(() => {
     if (activeMapCoords && mapInst.current && loaded) {
