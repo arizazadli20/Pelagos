@@ -29,6 +29,7 @@ import {
 type Props = {
   incident: Incident | null;
   onClose: () => void;
+  wide?: boolean;
 };
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
@@ -176,7 +177,7 @@ const actionBtnStyle = (variant: "primary" | "danger" | "neutral" | "warn"): Rea
   };
 };
 
-export default function IncidentDetailsPanel({ incident, onClose }: Props) {
+export default function IncidentDetailsPanel({ incident, onClose, wide }: Props) {
   const { applyHumanAction, getIncidentById } = useIncidentStore();
   const live = incident ? getIncidentById(incident.id) || incident : null;
   const vessel = getVesselById(live?.relatedVesselId);
@@ -226,7 +227,7 @@ export default function IncidentDetailsPanel({ incident, onClose }: Props) {
       title={live ? `Incident ${live.displayId}` : ""}
       subtitle={live?.title || live?.location}
       onClose={onClose}
-      width={480}
+      width={wide ? "min(1200px, 94vw)" : 480}
     >
       {live && (
         <>
