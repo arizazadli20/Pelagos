@@ -11,7 +11,6 @@ import {
   logout,
   syncAuthCookie,
 } from "@/lib/auth";
-import { IncidentStoreProvider } from "@/lib/incident-store";
 
 type Props = {
   active: NavId;
@@ -43,7 +42,7 @@ export default function AppShell({ active, children }: Props) {
   };
 
   return (
-    <IncidentStoreProvider>
+    <>
       {!mounted || !isAuthenticated() ? null : (
         <div className="dashboard-shell">
           <Header
@@ -58,6 +57,6 @@ export default function AppShell({ active, children }: Props) {
           </div>
         </div>
       )}
-    </IncidentStoreProvider>
+    </>
   );
 }

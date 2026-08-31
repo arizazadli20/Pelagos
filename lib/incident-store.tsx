@@ -16,6 +16,7 @@ import {
   buildAiAnalyses,
   buildResponseOps,
   getEnrichedVessels,
+  hydrateIncident,
 } from "@/lib/mock-data";
 import type {
   HumanDecision,
@@ -23,6 +24,31 @@ import type {
   IncidentStatus,
   ReviewStatus,
 } from "@/lib/types";
+
+/** Fixed id for the operator-triggered live incident simulation. */
+export const LIVE_INCIDENT_ID = "inc-live";
+
+function makeLiveIncident(): Incident {
+  return hydrateIncident({
+    id: LIVE_INCIDENT_ID,
+    displayId: "#LIVE",
+    title: "Central Caspian Pipeline Leak",
+    location: "Central Caspian Sea",
+    lat: 40.0,
+    lng: 50.4,
+    timestamp: new Date().toISOString(),
+    areaM2: 340,
+    aiProbability: 0.88,
+    risk: "HIGH",
+    status: "detected",
+    portId: "baku",
+    spillSource: "Pipeline leak",
+    aiSummary:
+      "Live SAR pass detected a fresh dark-signature slick consistent with a subsea pipeline rupture in the central offshore corridor. Compact, newly formed signature — immediate specialist triage recommended.",
+    humanDecision: "pending",
+    responseStatus: "Newly detected — live simulation",
+  });
+}
 
 type ApplyActionInput = {
   incidentId: string;
@@ -43,6 +69,9 @@ type IncidentStoreValue = {
   responseOps: ReturnType<typeof buildResponseOps>;
   getIncidentById: (id: string) => Incident | undefined;
   applyHumanAction: (input: ApplyActionInput) => void;
+  hasLiveIncident: boolean;
+  simulateLiveIncident: () => void;
+  resolveLiveIncident: () => void;
 };
 
 const IncidentStoreContext = createContext<IncidentStoreValue | null>(null);
@@ -135,6 +164,20 @@ export function IncidentStoreProvider({ children }: { children: ReactNode }) {
     [incidents]
   );
 
+  const simulateLiveIncident = useCallback(() => {
+    setIncidents((prev) =>
+      prev.some((i) => i.id === LIVE_INCIDENT_ID)
+        ? prev
+        : [makeLiveIncident(), ...prev]
+    );
+  }, []);
+
+  const resolveLiveIncident = useCallback(() => {
+    setIncidents((prev) => prev.filter((i) => i.id !== LIVE_INCIDENT_ID));
+  }, []);
+
+  const hasLiveIncident = incidents.some((i) => i.id === LIVE_INCIDENT_ID);
+
   const value = useMemo<IncidentStoreValue>(() => {
     const vessels = getEnrichedVessels(incidents);
     return {
@@ -149,8 +192,18 @@ export function IncidentStoreProvider({ children }: { children: ReactNode }) {
       responseOps: buildResponseOps(incidents),
       getIncidentById,
       applyHumanAction,
+      hasLiveIncident,
+      simulateLiveIncident,
+      resolveLiveIncident,
     };
-  }, [incidents, getIncidentById, applyHumanAction]);
+  }, [
+    incidents,
+    getIncidentById,
+    applyHumanAction,
+    hasLiveIncident,
+    simulateLiveIncident,
+    resolveLiveIncident,
+  ]);
 
   return (
     <IncidentStoreContext.Provider value={value}>

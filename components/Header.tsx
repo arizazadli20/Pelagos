@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { User, LogOut, Menu } from "lucide-react";
+import { User, LogOut, Menu, CheckCircle2 } from "lucide-react";
+import { useIncidentStore } from "@/lib/incident-store";
 
 type Props = {
   onLogout?: () => void;
@@ -57,6 +58,8 @@ export default function Header({
   userName = "Operator",
   userRole = "Admin",
 }: Props) {
+  const { hasLiveIncident, simulateLiveIncident, resolveLiveIncident } = useIncidentStore();
+
   return (
     <header
       style={{
@@ -138,24 +141,40 @@ export default function Header({
       <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
         <LiveClock />
 
-        <div
+        <button
+          type="button"
+          onClick={() => {
+            if (!hasLiveIncident) simulateLiveIncident();
+          }}
+          title={
+            hasLiveIncident
+              ? "A live incident is active"
+              : "Simulate a live incident detection"
+          }
+          className={hasLiveIncident ? "system-status-blink" : undefined}
           style={{
             display: "flex",
             alignItems: "center",
             gap: 8,
             padding: "6px 12px",
             borderRadius: 20,
-            background: "rgba(34, 197, 94, 0.08)",
-            border: "1px solid rgba(34, 197, 94, 0.22)",
+            background: hasLiveIncident
+              ? "rgba(224, 122, 95, 0.12)"
+              : "rgba(34, 197, 94, 0.08)",
+            border: hasLiveIncident
+              ? "1px solid rgba(224, 122, 95, 0.35)"
+              : "1px solid rgba(34, 197, 94, 0.22)",
+            cursor: hasLiveIncident ? "default" : "pointer",
+            fontFamily: "inherit",
           }}
         >
           <span
-            className="live-dot"
+            className={hasLiveIncident ? undefined : "live-dot"}
             style={{
               width: 7,
               height: 7,
               borderRadius: "50%",
-              background: "var(--color-low)",
+              background: hasLiveIncident ? "var(--color-high)" : "var(--color-low)",
               flexShrink: 0,
             }}
           />
@@ -165,12 +184,39 @@ export default function Header({
               fontWeight: 600,
               letterSpacing: "0.07em",
               textTransform: "uppercase",
-              color: "var(--color-low)",
+              color: hasLiveIncident ? "var(--color-high)" : "var(--color-low)",
             }}
           >
-            System Online
+            {hasLiveIncident ? "Incident Active" : "System Online"}
           </span>
-        </div>
+        </button>
+
+        {hasLiveIncident && (
+          <button
+            type="button"
+            onClick={resolveLiveIncident}
+            title="Mark the live incident as resolved"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+              padding: "6px 12px",
+              borderRadius: 20,
+              background: "var(--accent-soft)",
+              border: "1px solid rgba(129,178,154,0.35)",
+              color: "var(--accent)",
+              fontSize: 11,
+              fontWeight: 600,
+              letterSpacing: "0.05em",
+              textTransform: "uppercase",
+              cursor: "pointer",
+              fontFamily: "inherit",
+            }}
+          >
+            <CheckCircle2 size={12} />
+            Mark Resolved
+          </button>
+        )}
 
         <div
           style={{

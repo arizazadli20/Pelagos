@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { IncidentStoreProvider } from "@/lib/incident-store";
 
 export const metadata: Metadata = {
   title: "Pelagos — Satellite & AI Oil Spill Intelligence",
@@ -44,7 +45,9 @@ export default function RootLayout({
           crossOrigin="anonymous"
         />
       </head>
-      <body>{children}</body>
+      <body>
+        <IncidentStoreProvider>{children}</IncidentStoreProvider>
+      </body>
     </html>
   );
 }

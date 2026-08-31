@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { formatAreaM2, formatDateTimeAZT } from "@/lib/mock-data";
 import type { Incident, IncidentStatus, RiskLevel } from "@/lib/types";
 import AppShell from "@/components/AppShell";
@@ -48,13 +49,16 @@ function matchesDate(ts: string, filter: DateFilter) {
 export default function IncidentsPage() {
   return (
     <AppShell active="incidents">
-      <IncidentsContent />
+      <Suspense fallback={null}>
+        <IncidentsContent />
+      </Suspense>
     </AppShell>
   );
 }
 
 function IncidentsContent() {
   const { incidents, stats, getIncidentById } = useIncidentStore();
+  const searchParams = useSearchParams();
   const [search, setSearch] = useState("");
   const [riskFilter, setRiskFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -63,6 +67,15 @@ function IncidentsContent() {
   const [sortKey, setSortKey] = useState<SortKey>("timestamp");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [wide, setWide] = useState(false);
+
+  useEffect(() => {
+    const openId = searchParams.get("open");
+    if (openId) {
+      setSelectedId(openId);
+      setWide(searchParams.get("wide") === "1");
+    }
+  }, [searchParams]);
 
   const selected = selectedId ? getIncidentById(selectedId) || null : null;
 
@@ -339,7 +352,11 @@ function IncidentsContent() {
         </div>
       </div>
 
-      <IncidentDetailsPanel incident={selected} onClose={() => setSelectedId(null)} />
+      <IncidentDetailsPanel
+        incident={selected}
+        onClose={() => setSelectedId(null)}
+        wide={wide}
+      />
 
       <style>{`
         @media (max-width: 1100px) {

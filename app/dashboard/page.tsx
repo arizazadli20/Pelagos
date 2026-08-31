@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import AppShell from "@/components/AppShell";
 import MapPanel from "@/components/MapPanel";
 import KpiCards from "@/components/KpiCards";
@@ -8,7 +9,7 @@ import RecentIncidents from "@/components/RecentIncidents";
 import ActivityFeed from "@/components/ActivityFeed";
 import SeaWeatherWidget from "@/components/SeaWeatherWidget";
 import IncidentDetailsPanel from "@/components/incidents/IncidentDetailsPanel";
-import { useIncidentStore } from "@/lib/incident-store";
+import { useIncidentStore, LIVE_INCIDENT_ID } from "@/lib/incident-store";
 import { mockData } from "@/lib/mock-data";
 import type { Incident } from "@/lib/types";
 
@@ -21,12 +22,21 @@ export default function DashboardPage() {
 }
 
 function DashboardContent() {
+  const router = useRouter();
   const { incidents, vessels, riskZones, activity, kpis } = useIncidentStore();
   const [activeMapCoords, setActiveMapCoords] = useState<[number, number] | null>(null);
   const [selected, setSelected] = useState<Incident | null>(null);
   const [weatherPortId, setWeatherPortId] = useState(mockData.ports[0].id);
   const weatherPort =
     mockData.ports.find((p) => p.id === weatherPortId) || mockData.ports[0];
+
+  const handleIncidentSelect = (inc: Incident) => {
+    if (inc.id === LIVE_INCIDENT_ID) {
+      router.push(`/incidents?open=${inc.id}&wide=1`);
+      return;
+    }
+    setSelected(inc);
+  };
 
   const mapVessels = vessels.map((v) => ({
     id: v.id,
@@ -53,7 +63,7 @@ function DashboardContent() {
               vessels={mapVessels}
               riskZones={riskZones}
               activeMapCoords={activeMapCoords}
-              onIncidentSelect={setSelected}
+              onIncidentSelect={handleIncidentSelect}
             />
           </section>
 
