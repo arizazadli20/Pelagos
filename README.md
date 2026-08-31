@@ -1,8 +1,8 @@
-# Pelagos
+# SeaSeatry
 
 **Satellite & AI oil spill intelligence for the Caspian Sea**
 
-Pelagos is a Next.js operational demo platform that helps operators detect, review, and respond to potential oil spills using satellite-oriented workflows and AI-assisted analysis. It provides a landing site, mock authentication, a maritime dashboard, and multi-page ops tools (incidents, vessels, AI analysis, response, reports) backed by centralized mock data designed to be replaced by real APIs later.
+SeaSeatry is a Next.js operational demo platform that helps operators detect, review, and respond to potential oil spills using satellite-oriented workflows and AI-assisted analysis. It provides a landing site, mock authentication, a maritime dashboard, and multi-page ops tools (incidents, vessels, AI analysis, response, reports) backed by centralized mock data designed to be replaced by real APIs later.
 
 > **By design, this project is a self-contained frontend demo.** It has no backend and no ML model, and none is planned — this is a deliberate product decision, not a gap to be filled later. All operational data is mocked to showcase the UI/UX end-to-end.
 
@@ -75,7 +75,7 @@ Optional API:
 - **Frontend-first monolith**: a single Next.js app (no microservices).
 - **REST surface today**: one App Router API route (`/api/copernicus-token`).
 - **Data flow**: mock seed data → shared incident store → pages/components; HITL actions mutate store state in memory for the session.
-- **Auth flow**: login/register write localStorage + `pelagos-auth` cookie; middleware protects ops routes; logout clears session and returns to the landing page.
+- **Auth flow**: login/register write localStorage + `seaseatry-auth` cookie; middleware protects ops routes; logout clears session and returns to the landing page.
 
 ### Directory layout
 
@@ -229,7 +229,7 @@ The main app flow does **not** currently read `process.env` configuration.
 
 | Variable | Required | Used by | Notes |
 | --- | --- | --- | --- |
-| *(none for mock demo)* | — | Landing, auth, dashboard, ops pages | Auth uses browser `localStorage` + the `pelagos-auth` cookie |
+| *(none for mock demo)* | — | Landing, auth, dashboard, ops pages | Auth uses browser `localStorage` + the `seaseatry-auth` cookie |
 | `COPERNICUS_CLIENT_ID` | Yes (for token route) | `/api/copernicus-token` | Copernicus CDSE client ID — copy `.env.example` to `.env.local` |
 | `COPERNICUS_CLIENT_SECRET` | Yes (for token route) | `/api/copernicus-token` | Copernicus CDSE client secret — never commit real values |
 | `COPERNICUS_INSTANCE_ID` | Not yet | *(reserved)* | Sentinel Hub Configuration Instance ID — not consumed by any code yet, reserved for future SAR image fetching |
@@ -238,8 +238,8 @@ Cookie / storage keys (not env vars, but important runtime identifiers):
 
 | Key | Where | Purpose |
 | --- | --- | --- |
-| `pelagos-auth` | Cookie + localStorage flag | Middleware / client auth gate |
-| `pelagos-user` | localStorage | Stored mock user profile (`name`, `email`) |
+| `seaseatry-auth` | Cookie + localStorage flag | Middleware / client auth gate |
+| `seaseatry-user` | localStorage | Stored mock user profile (`name`, `email`) |
 
 ---
 

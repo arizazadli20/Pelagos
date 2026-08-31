@@ -1,5 +1,5 @@
 // ============================================================
-// Pelagos domain models
+// SeaSeatry domain models
 // ============================================================
 // Shared TypeScript interfaces for the multi-page app.
 // Later: backend / satellite / AI / AIS / weather APIs should
