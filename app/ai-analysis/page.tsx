@@ -156,6 +156,7 @@ function AiAnalysisContent() {
         incident={selected as Incident | null}
         onClose={() => setSelectedId(null)}
         wide={wide}
+        context="ai"
       />
 
       <style>{`
