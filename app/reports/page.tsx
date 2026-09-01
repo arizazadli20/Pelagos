@@ -39,7 +39,7 @@ function ReportsContent() {
       <div className="dashboard-scroll">
         <PageHeader
           title="Reports"
-          subtitle="Operational intelligence overview across the Caspian monitoring programme. Generated from the shared mock incident dataset."
+          subtitle="Operational intelligence overview across the Caspian monitoring programme. Generated from the shared incident dataset."
           actions={
             <button
               type="button"
@@ -109,7 +109,7 @@ function ReportsContent() {
               <Row label="Active incidents" value={String(stats.active)} />
               <Row label="Under review" value={String(stats.underReview)} />
               <Row label="Resolved" value={String(stats.resolved)} />
-              <Row label="Avg response / alert latency (mock)" value={`${report.avgResponseTimeMin} min`} />
+              <Row label="Avg response / alert latency" value={`${report.avgResponseTimeMin} min`} />
               <Row label="Dataset scope" value="Caspian Sea · Azerbaijan corridor" />
             </div>
           </div>
@@ -169,7 +169,7 @@ function ReportsContent() {
                 zIndex: 90,
               }}
             >
-              <h2 style={{ margin: "0 0 8px", fontSize: 18 }}>Report preview (mock)</h2>
+              <h2 style={{ margin: "0 0 8px", fontSize: 18 }}>Report preview</h2>
               <p style={{ margin: "0 0 16px", color: "var(--text-secondary)", fontSize: 13, lineHeight: 1.5 }}>
                 Official report generation is not connected yet. This preview summarizes the current
                 in-memory demo dataset only and is not an official operational export.

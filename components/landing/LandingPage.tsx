@@ -44,7 +44,7 @@ const STEPS = [
   },
   {
     n: "04",
-    title: "Respond",
+    title: "Sorbent Materials",
     text: "Sorbent material is calculated from the estimated oil volume and deployed to clean up the spill, tracked through completion.",
   },
 ];
@@ -111,22 +111,6 @@ export default function LandingPage() {
             AI provides analysis and recommendations. Final operational decisions remain with
             human experts.
           </p>
-        </div>
-
-        <div className="landing-hero-visual" aria-hidden>
-          <div className="caspian-visual">
-            <div className="caspian-grid" />
-            <div className="caspian-sea" />
-            <div className="caspian-coast" />
-            <div className="caspian-scan" />
-            <div className="caspian-marker caspian-marker-a" />
-            <div className="caspian-marker caspian-marker-b" />
-            <div className="caspian-marker caspian-marker-c" />
-            <div className="caspian-label">Caspian Sea · Azerbaijan corridor</div>
-            <div className="caspian-sar-badge">
-              <Satellite size={12} /> Sentinel-1 SAR overlay
-            </div>
-          </div>
         </div>
       </section>
 
