@@ -5,7 +5,7 @@ import { ResponsiveGridLayout, LayoutItem, ResponsiveLayouts, verticalCompactor 
 import { RotateCcw, Activity, ShieldAlert, Navigation, RefreshCw, History, BarChart2, Edit2, Check, CloudSun, Package, TrendingUp } from "lucide-react";
 import WidgetCard from "./WidgetCard";
 
-const STORAGE_KEY  = "seaseatry-dashboard-layout-v3";
+const STORAGE_KEY  = "seasentry-dashboard-layout-v3";
 const DRAG_HANDLE  = "widget-header";
 
 /** Default 12-column layout */

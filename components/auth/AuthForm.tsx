@@ -77,9 +77,9 @@ export default function AuthForm({ mode }: Props) {
 
         <div className="auth-card">
           <div className="auth-card-brand">
-            <img src="/logo-icon.png" alt="SeaSeatry" className="auth-card-logo" />
+            <img src="/logo-icon.png" alt="SeaSentry" className="auth-card-logo" />
             <div>
-              <div className="auth-card-title">SeaSeatry</div>
+              <div className="auth-card-title">SeaSentry</div>
               <div className="auth-card-sub">Satellite & AI Oil Spill Intelligence</div>
             </div>
           </div>
@@ -90,7 +90,7 @@ export default function AuthForm({ mode }: Props) {
           <p className="auth-lede">
             {mode === "login"
               ? "Access the Caspian Sea operations workspace."
-              : "Register to enter the SeaSeatry operational platform."}
+              : "Register to enter the SeaSentry operational platform."}
           </p>
 
           <form onSubmit={handleSubmit} className="auth-form" noValidate>

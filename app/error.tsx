@@ -69,7 +69,7 @@ export default function Error({
             margin: "0 0 24px",
           }}
         >
-          This section of SeaSeatry hit an unexpected error. You can try again, or head back to the
+          This section of SeaSentry hit an unexpected error. You can try again, or head back to the
           dashboard.
         </p>
         <div style={{ display: "flex", gap: 10, justifyContent: "center" }}>

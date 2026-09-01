@@ -1,5 +1,5 @@
 // ============================================================
-// SeaSeatry Authentication
+// SeaSentry Authentication
 // ============================================================
 // Mock client-side auth for the current phase.
 // Replace `login` / `register` / `logout` bodies with real
@@ -7,9 +7,9 @@
 // Keep the exported function signatures stable for UI pages.
 // ============================================================
 
-export const AUTH_STORAGE_KEY = "seaseatry-auth";
-export const USER_STORAGE_KEY = "seaseatry-user";
-export const AUTH_COOKIE_NAME = "seaseatry-auth";
+export const AUTH_STORAGE_KEY = "seasentry-auth";
+export const USER_STORAGE_KEY = "seasentry-user";
+export const AUTH_COOKIE_NAME = "seasentry-auth";
 
 export type AuthUser = {
   name: string;
@@ -63,7 +63,7 @@ export function getCurrentUser(): AuthUser | null {
   return (
     readStoredUser() ?? {
       name: "Operator",
-      email: "operator@seaseatry.az",
+      email: "operator@seasentry.az",
     }
   );
 }

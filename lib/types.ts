@@ -1,5 +1,5 @@
 // ============================================================
-// SeaSeatry domain models
+// SeaSentry domain models
 // ============================================================
 // Shared TypeScript interfaces for the multi-page app.
 // Later: backend / satellite / AI / AIS / weather APIs should

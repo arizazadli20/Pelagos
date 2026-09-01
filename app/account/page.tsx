@@ -25,7 +25,7 @@ export default function AccountPage() {
       <div className="dashboard-scroll">
         <PageHeader
           title="Account"
-          subtitle="Operator profile for the SeaSeatry operational workspace."
+          subtitle="Operator profile for the SeaSentry operational workspace."
         />
 
         <div style={{ display: "grid", gridTemplateColumns: "1.2fr 1fr", gap: 16 }} className="account-grid">
@@ -59,7 +59,7 @@ export default function AccountPage() {
 
               <div style={{ display: "grid", gap: 12, fontSize: 13 }}>
                 <InfoRow label="Role" value="Admin / Duty Operator" />
-                <InfoRow label="Organisation" value="SeaSeatry Operations (demo)" />
+                <InfoRow label="Organisation" value="SeaSentry Operations (demo)" />
                 <InfoRow label="Monitoring theatre" value="Caspian Sea · Azerbaijan" />
                 <InfoRow label="Auth mode" value="Local demo session" />
               </div>

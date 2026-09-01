@@ -240,7 +240,7 @@ export function ResponseOptionsBar({ data }: { data: ResponseOption[] }) {
 }
 
 // ------------------------------------------------------------------
-// Method comparison — SeaSeatry (AI-assisted) vs. traditional response.
+// Method comparison — SeaSentry (AI-assisted) vs. traditional response.
 // ------------------------------------------------------------------
 
 /** Each metric (hours vs. dollars) gets its own scale — a shared axis would
@@ -256,7 +256,7 @@ export function MethodComparisonBar({ data }: { data: MethodComparison[] }) {
           <ResponsiveContainer width="100%" height={140}>
             <BarChart
               data={[
-                { name: "SeaSeatry", value: m.seaSeatry },
+                { name: "SeaSentry", value: m.seaSentry },
                 { name: "Traditional", value: m.traditional },
               ]}
               margin={{ top: 8, right: 8, left: 0, bottom: 0 }}
@@ -284,7 +284,7 @@ export function MethodComparisonBar({ data }: { data: MethodComparison[] }) {
       ))}
       <div style={{ gridColumn: "1 / -1", display: "flex", justifyContent: "center", gap: 16, fontSize: 11 }}>
         <span style={{ display: "flex", alignItems: "center", gap: 5, color: "var(--text-secondary)" }}>
-          <span style={{ width: 9, height: 9, borderRadius: 2, background: COLOR_ACCENT, display: "inline-block" }} /> SeaSeatry (AI-assisted)
+          <span style={{ width: 9, height: 9, borderRadius: 2, background: COLOR_ACCENT, display: "inline-block" }} /> SeaSentry (AI-assisted)
         </span>
         <span style={{ display: "flex", alignItems: "center", gap: 5, color: "var(--text-secondary)" }}>
           <span style={{ width: 9, height: 9, borderRadius: 2, background: COLOR_HIGH, display: "inline-block" }} /> Traditional response

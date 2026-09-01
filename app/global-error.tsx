@@ -39,7 +39,7 @@ export default function GlobalError({
             }}
           >
             <h1 style={{ fontSize: 18, fontWeight: 650, color: "#2B2D42", margin: "0 0 8px" }}>
-              SeaSeatry failed to load
+              SeaSentry failed to load
             </h1>
             <p style={{ fontSize: 13, color: "#6C757D", lineHeight: 1.55, margin: "0 0 24px" }}>
               A critical error occurred. Please try reloading the page.
