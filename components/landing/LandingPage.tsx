@@ -53,7 +53,7 @@ function BrandMark({ size = 34 }: { size?: number }) {
   return (
     <img
       src="/logo-icon.png"
-      alt="SeaSeatry"
+      alt="SeaSentry"
       style={{ width: size, height: size, objectFit: "contain", flexShrink: 0 }}
     />
   );
@@ -68,7 +68,7 @@ export default function LandingPage() {
           <Link href="/" className="landing-brand">
             <BrandMark />
             <div>
-              <div className="landing-brand-name">SeaSeatry</div>
+              <div className="landing-brand-name">SeaSentry</div>
               <div className="landing-brand-tag">Satellite & AI Oil Spill Intelligence</div>
             </div>
           </Link>
@@ -96,7 +96,7 @@ export default function LandingPage() {
             Act.
           </h1>
           <p className="landing-support">
-            SeaSeatry combines satellite intelligence, AI analysis and operational data to help
+            SeaSentry combines satellite intelligence, AI analysis and operational data to help
             detect oil spills, assess risk, and support human-led response across the Caspian Sea.
           </p>
           <div className="landing-cta-row">
@@ -175,11 +175,11 @@ export default function LandingPage() {
         <div className="landing-section-inner landing-bottom-inner">
           <h2>Ready to monitor smarter?</h2>
           <p>
-            Enter SeaSeatry to access Caspian Sea oil spill intelligence, AI analysis support and
+            Enter SeaSentry to access Caspian Sea oil spill intelligence, AI analysis support and
             human-led response workflows.
           </p>
           <Link href="/register" className="landing-btn landing-btn-primary landing-btn-lg">
-            Enter SeaSeatry <ArrowRight size={16} />
+            Enter SeaSentry <ArrowRight size={16} />
           </Link>
         </div>
       </section>
@@ -192,7 +192,7 @@ export default function LandingPage() {
               <BrandMark size={28} />
               <div>
                 <div className="landing-brand-name" style={{ fontSize: 13 }}>
-                  SeaSeatry
+                  SeaSentry
                 </div>
                 <div className="landing-brand-tag">Satellite & AI Oil Spill Intelligence</div>
               </div>

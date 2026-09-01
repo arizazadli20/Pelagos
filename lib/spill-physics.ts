@@ -330,7 +330,7 @@ export function deriveResponseOptions(
 
 export type MethodComparison = {
   metric: string;
-  seaSeatry: number;
+  seaSentry: number;
   traditional: number;
   unit: string;
 };
@@ -341,21 +341,21 @@ export function deriveMethodComparison(
   materials: ResponseMaterials
 ): MethodComparison[] {
   const seed = hashString(incident.id + "-method");
-  const seaSeatryDetectHours = 1 + (seed % 3);
-  const traditionalDetectHours = seaSeatryDetectHours * (6 + (seed % 5));
-  const spreadFactor = traditionalDetectHours / seaSeatryDetectHours;
+  const seaSentryDetectHours = 1 + (seed % 3);
+  const traditionalDetectHours = seaSentryDetectHours * (6 + (seed % 5));
+  const spreadFactor = traditionalDetectHours / seaSentryDetectHours;
   const traditionalCost = Math.round(materials.estimatedCostUsd * Math.min(3, 1 + spreadFactor * 0.25));
 
   return [
     {
       metric: "Detection-to-response time",
-      seaSeatry: seaSeatryDetectHours,
+      seaSentry: seaSentryDetectHours,
       traditional: traditionalDetectHours,
       unit: "h",
     },
     {
       metric: "Total response cost",
-      seaSeatry: materials.estimatedCostUsd,
+      seaSentry: materials.estimatedCostUsd,
       traditional: traditionalCost,
       unit: "$",
     },

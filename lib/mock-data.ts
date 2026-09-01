@@ -1,5 +1,5 @@
 // ============================================================
-// SeaSeatry Mock Data
+// SeaSentry Mock Data
 // ============================================================
 // To swap for a real API, replace this file with a module that
 // exports the same `mockData` object shape, fetching from your
