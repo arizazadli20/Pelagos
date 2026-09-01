@@ -57,7 +57,7 @@ function VesselsContent() {
       <div className="dashboard-scroll">
         <PageHeader
           title="Vessels"
-          subtitle="Mock AIS situational picture for the Caspian operational corridor. Not connected to a live AIS feed."
+          subtitle="AIS situational picture for the Caspian operational corridor. Not connected to a live AIS feed."
         />
 
         <section
@@ -115,7 +115,7 @@ function VesselsContent() {
 
         <div className="panel">
           <div className="panel-header">
-            <span className="panel-title">Vessel register (mock AIS)</span>
+            <span className="panel-title">Vessel register</span>
           </div>
           <div className="panel-body" style={{ overflowX: "auto" }}>
             <div
@@ -235,7 +235,7 @@ function VesselsContent() {
                 <div style={{ marginTop: 4 }}>{selected.status}</div>
               </div>
               <div>
-                <div style={{ fontSize: 10, color: "var(--text-tertiary)", textTransform: "uppercase", letterSpacing: "0.07em" }}>Last update (mock)</div>
+                <div style={{ fontSize: 10, color: "var(--text-tertiary)", textTransform: "uppercase", letterSpacing: "0.07em" }}>Last update</div>
                 <div style={{ marginTop: 4 }}>{selected.lastUpdate}</div>
               </div>
             </div>
@@ -262,13 +262,13 @@ function VesselsContent() {
                 </div>
               ) : (
                 <div style={{ fontSize: 13, color: "var(--text-secondary)" }}>
-                  No nearby active incident association in the mock dataset.
+                  No nearby active incident association.
                 </div>
               )}
             </div>
 
             <p style={{ fontSize: 11, color: "var(--text-tertiary)", margin: 0 }}>
-              Mock AIS demonstration data only. A live AIS API can replace this layer later.
+              Demonstration AIS data only. A live AIS API can replace this layer later.
             </p>
           </div>
         )}

@@ -51,7 +51,7 @@ function AiAnalysisContent() {
       <div className="dashboard-scroll">
         <PageHeader
           title="AI Analysis"
-          subtitle="Mock satellite spill analysis packages prepared for human operators. No live AI model is connected."
+          subtitle="Satellite spill analysis packages prepared for human operators. No live AI model is connected."
         />
 
         <div
@@ -92,7 +92,7 @@ function AiAnalysisContent() {
         <div className="panel">
           <div className="panel-header">
             <span className="panel-title">AI analysis queue</span>
-            <span style={{ fontSize: 11, color: "var(--text-tertiary)" }}>Mock responses</span>
+            <span style={{ fontSize: 11, color: "var(--text-tertiary)" }}>Demo dataset · not live</span>
           </div>
           <div className="panel-body" style={{ padding: 16, display: "grid", gap: 12 }}>
             {aiAnalyses.length === 0 && (
