@@ -5,18 +5,16 @@ import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
 import type { NavId } from "@/lib/nav";
-import {
-  getCurrentUser,
-  isAuthenticated,
-  logout,
-  syncAuthCookie,
-} from "@/lib/auth";
+import { getCurrentUser, logout } from "@/lib/auth";
 
 type Props = {
   active: NavId;
   children: React.ReactNode;
 };
 
+// Demo login requirement disabled for now — this shell no longer checks
+// isAuthenticated()/redirects to /login. To restore it, bring back that
+// check (see git history) alongside middleware.ts's route guard.
 export default function AppShell({ active, children }: Props) {
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
@@ -24,17 +22,10 @@ export default function AppShell({ active, children }: Props) {
   const [sidebarExpanded, setSidebarExpanded] = useState(false);
 
   useEffect(() => {
-    syncAuthCookie();
     setMounted(true);
-
-    if (!isAuthenticated()) {
-      router.replace("/login");
-      return;
-    }
-
     const user = getCurrentUser();
     if (user?.name) setUserName(user.name);
-  }, [router]);
+  }, []);
 
   const handleLogout = () => {
     logout();
@@ -43,7 +34,7 @@ export default function AppShell({ active, children }: Props) {
 
   return (
     <>
-      {!mounted || !isAuthenticated() ? null : (
+      {!mounted ? null : (
         <div className="dashboard-shell">
           <Header
             onLogout={handleLogout}
