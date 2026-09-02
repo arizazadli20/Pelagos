@@ -1,41 +1,10 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-/** Keep in sync with AUTH_COOKIE_NAME in lib/auth.ts */
-const AUTH_COOKIE_NAME = "seasentry-auth";
-
-const PROTECTED_PREFIXES = [
-  "/dashboard",
-  "/incidents",
-  "/vessels",
-  "/ai-analysis",
-  "/response",
-  "/reports",
-  "/account",
-];
-
-function isProtected(pathname: string) {
-  return PROTECTED_PREFIXES.some(
-    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`)
-  );
-}
-
-export function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl;
-  const authed = request.cookies.get(AUTH_COOKIE_NAME)?.value === "1";
-  const isAuthPage = pathname === "/login" || pathname === "/register";
-
-  if (isProtected(pathname) && !authed) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/login";
-    url.searchParams.set("next", pathname);
-    return NextResponse.redirect(url);
-  }
-
-  if (isAuthPage && authed) {
-    return NextResponse.redirect(new URL("/dashboard", request.url));
-  }
-
+// Demo login requirement disabled for now — every route is open, no
+// redirect to /login. To restore it, bring back the auth-cookie check
+// that used to live here (see git history) along with the matcher below.
+export function middleware(_request: NextRequest) {
   return NextResponse.next();
 }
 
